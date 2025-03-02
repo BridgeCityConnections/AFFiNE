@@ -28,6 +28,7 @@ import { BrushTool } from './gfx-tool/brush-tool.js';
 import { DefaultTool } from './gfx-tool/default-tool.js';
 import { EmptyTool } from './gfx-tool/empty-tool.js';
 import { EraserTool } from './gfx-tool/eraser-tool.js';
+import { HighlighterTool } from './gfx-tool/highlighter-tool';
 import { LassoTool } from './gfx-tool/lasso-tool.js';
 import { PanTool } from './gfx-tool/pan-tool.js';
 import { TemplateTool } from './gfx-tool/template-tool.js';
@@ -48,6 +49,7 @@ export const EdgelessToolExtension: ExtensionType[] = [
   FrameTool,
   LassoTool,
   PresentTool,
+  HighlighterTool,
 ];
 
 export const EdgelessEditExtensions: ExtensionType[] = [

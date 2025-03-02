@@ -10,6 +10,7 @@ import { BlockFlavourIdentifier } from '@blocksuite/block-std';
 import type { ExtensionType } from '@blocksuite/store';
 
 import { builtinBrushToolbarConfig } from './brush';
+import { builtinHighlighterToolbarConfig } from './highlighter';
 import { builtinLockedToolbarConfig, builtinMiscToolbarConfig } from './misc';
 
 export const EdgelessElementToolbarExtension: ExtensionType[] = [
@@ -20,6 +21,11 @@ export const EdgelessElementToolbarExtension: ExtensionType[] = [
   ToolbarModuleExtension({
     id: BlockFlavourIdentifier('affine:surface:brush'),
     config: builtinBrushToolbarConfig,
+  }),
+
+  ToolbarModuleExtension({
+    id: BlockFlavourIdentifier('affine:surface:highlighter'),
+    config: builtinHighlighterToolbarConfig,
   }),
 
   connectorToolbarExtension,

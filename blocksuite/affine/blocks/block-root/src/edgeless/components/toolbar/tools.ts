@@ -31,10 +31,8 @@ const linkQuickTool = QuickToolExtension('link', ({ block, gfx }) => {
 const penSeniorTool = SeniorToolExtension('pen', ({ block }) => {
   return {
     name: 'Pen',
-    content: html`<div class="brush-and-eraser">
-      <edgeless-brush-tool-button
-        .edgeless=${block}
-      ></edgeless-brush-tool-button>
+    content: html`<div class="pen-and-eraser">
+      <edgeless-pen-tool-button .edgeless=${block}></edgeless-pen-tool-button>
 
       <edgeless-eraser-tool-button
         .edgeless=${block}
