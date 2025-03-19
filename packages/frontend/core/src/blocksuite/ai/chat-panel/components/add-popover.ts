@@ -271,7 +271,7 @@ export class ChatPanelAddPopover extends SignalWatcher(
   }
 
   override render() {
-    return html`<div class="add-popover">
+    return html`<div data-testid="chat-panel-with-menu" class="add-popover">
       ${this._renderSearchInput()} ${this._renderDivider()}
       ${this._renderMenuGroup(this._menuGroup)}
     </div>`;

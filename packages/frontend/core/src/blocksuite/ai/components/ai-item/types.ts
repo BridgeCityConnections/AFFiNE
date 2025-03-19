@@ -13,6 +13,7 @@ export interface AIItemGroupConfig {
 
 export interface AIItemConfig {
   name: string;
+  testId: string;
   icon: TemplateResult | (() => HTMLElement);
   showWhen?: (
     chain: Chain<InitCommandCtx>,
@@ -27,6 +28,7 @@ export interface AIItemConfig {
 
 export interface AISubItemConfig {
   type: string;
+  testId?: string;
   handler?: (host: EditorHost) => void;
 }
 

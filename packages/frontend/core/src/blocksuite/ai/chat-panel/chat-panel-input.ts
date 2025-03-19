@@ -216,6 +216,9 @@ export class ChatPanelInput extends SignalWatcher(WithDisposable(LitElement)) {
   @property({ attribute: false })
   accessor networkSearchConfig!: AINetworkSearchConfig;
 
+  @property({ attribute: 'data-testid', reflect: true })
+  accessor testId = 'chat-panel-input-container';
+
   private get _isNetworkActive() {
     return (
       !!this.networkSearchConfig.visible.value &&
@@ -331,7 +334,10 @@ export class ChatPanelInput extends SignalWatcher(WithDisposable(LitElement)) {
             `
           : nothing}
         ${this.chatContextValue.quote
-          ? html`<div class="chat-selection-quote">
+          ? html`<div
+              class="chat-selection-quote"
+              data-testid="chat-selection-quote"
+            >
               ${repeat(
                 getFirstTwoLines(this.chatContextValue.quote),
                 line => line,
@@ -416,6 +422,7 @@ export class ChatPanelInput extends SignalWatcher(WithDisposable(LitElement)) {
             : nothing}
           ${images.length < MaximumImageCount
             ? html`<div
+                data-testid="chat-panel-input-image-upload"
                 class="image-upload"
                 aria-disabled=${uploadDisabled}
                 @click=${uploadDisabled ? undefined : this._uploadImageFiles}
@@ -430,6 +437,7 @@ export class ChatPanelInput extends SignalWatcher(WithDisposable(LitElement)) {
                   this.updateContext({ status: 'success' });
                   reportResponse('aborted:stop');
                 }}
+                data-testid="chat-panel-stop"
               >
                 ${ChatAbortIcon}
               </div>`

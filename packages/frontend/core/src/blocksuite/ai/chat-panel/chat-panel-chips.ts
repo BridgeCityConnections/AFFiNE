@@ -77,6 +77,9 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
   @property({ attribute: false })
   accessor searchMenuConfig!: SearchMenuConfig;
 
+  @property({ attribute: 'data-testid', reflect: true })
+  accessor testId = 'chat-panel-chips';
+
   @query('.add-button')
   accessor addButton!: HTMLDivElement;
 
@@ -94,7 +97,11 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
       : this.chatContextValue.chips;
 
     return html` <div class="chips-wrapper">
-      <div class="add-button" @click=${this._toggleAddDocMenu}>
+      <div
+        class="add-button"
+        data-testid="chat-panel-with-button"
+        @click=${this._toggleAddDocMenu}
+      >
         ${PlusIcon()}
       </div>
       ${repeat(

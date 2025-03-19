@@ -86,7 +86,7 @@ export class AIPanelAnswer extends WithDisposable(LitElement) {
     return html`
       <div class="answer">
         <div class="answer-head">Answer</div>
-        <div class="answer-body">
+        <div class="answer-body" data-testid="answer-content">
           <slot></slot>
         </div>
       </div>
@@ -143,6 +143,9 @@ export class AIPanelAnswer extends WithDisposable(LitElement) {
 
   @property({ attribute: false })
   accessor host!: EditorHost;
+
+  @property({ attribute: 'data-testid', reflect: true })
+  accessor testId = 'ai-penel-answer';
 }
 
 declare global {
