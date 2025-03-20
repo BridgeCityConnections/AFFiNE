@@ -1,30 +1,70 @@
-import type { ClientOptions as OpenAIClientOptions } from 'openai';
-
-import { defineStartupConfig, ModuleConfig } from '../../base/config';
-import { StorageConfig } from '../../base/storage/config';
+import { defineModuleConfig, StorageProviderConfig } from '../../base';
 import type { FalConfig } from './providers/fal';
 import { GoogleConfig } from './providers/google';
+import { OpenAIConfig } from './providers/openai';
 import { PerplexityConfig } from './providers/perplexity';
-
-export interface CopilotStartupConfigurations {
-  openai?: OpenAIClientOptions;
-  fal?: FalConfig;
-  google?: GoogleConfig;
-  perplexity?: PerplexityConfig;
-  test?: never;
-  unsplashKey?: string;
-  storage: StorageConfig;
-}
-
-declare module '../config' {
-  interface PluginsConfig {
-    copilot: ModuleConfig<CopilotStartupConfigurations>;
+declare global {
+  interface AppConfig {
+    copilot: {
+      enabled: boolean;
+      unsplash: ConfigItem<{
+        key: string;
+      }>;
+      storage: ConfigItem<StorageProviderConfig>;
+      providers: {
+        openai: ConfigItem<OpenAIConfig>;
+        fal: ConfigItem<FalConfig>;
+        google: ConfigItem<GoogleConfig>;
+        perplexity: ConfigItem<PerplexityConfig>;
+      };
+    };
   }
 }
 
-defineStartupConfig('plugins.copilot', {
+defineModuleConfig('copilot', {
+  enabled: {
+    desc: 'Whether to enable the copilot plugin.',
+    default: false,
+  },
+  'providers.openai': {
+    desc: 'The config for the openai provider.',
+    default: {
+      apiKey: '',
+    },
+    link: 'https://github.com/openai/openai-node',
+  },
+  'providers.fal': {
+    desc: 'The config for the fal provider.',
+    default: {
+      apiKey: '',
+    },
+  },
+  'providers.google': {
+    desc: 'The config for the google provider.',
+    default: {
+      apiKey: '',
+    },
+  },
+  'providers.perplexity': {
+    desc: 'The config for the perplexity provider.',
+    default: {
+      apiKey: '',
+    },
+  },
+  unsplash: {
+    desc: 'The config for the unsplash key.',
+    default: {
+      key: '',
+    },
+  },
   storage: {
-    provider: 'fs',
-    bucket: 'copilot',
+    desc: 'The config for the storage provider.',
+    default: {
+      provider: 'fs',
+      bucket: 'copilot',
+      config: {
+        path: '~/.affine/storage',
+      },
+    },
   },
 });

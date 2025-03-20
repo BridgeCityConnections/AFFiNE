@@ -1,34 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Type } from '@nestjs/common';
 
-import { Config } from '../../config';
-import { StorageConfig, StorageProviderType } from '../config';
-import type { StorageProvider } from './provider';
+import { FsStorageConfig, FsStorageProvider } from './fs';
+import { StorageProvider } from './provider';
+import { R2StorageConfig, R2StorageProvider } from './r2';
+import { S3StorageConfig, S3StorageProvider } from './s3';
 
-const availableProviders = new Map<
-  StorageProviderType,
-  (config: Config, bucket: string) => StorageProvider
->();
+export type StorageProviderName = 'fs' | 'aws-s3' | 'cloudflare-r2';
+export const StorageProviders: Record<
+  StorageProviderName,
+  Type<StorageProvider>
+> = {
+  fs: FsStorageProvider,
+  'aws-s3': S3StorageProvider,
+  'cloudflare-r2': R2StorageProvider,
+};
 
-export function registerStorageProvider(
-  type: StorageProviderType,
-  providerFactory: (config: Config, bucket: string) => StorageProvider
-) {
-  availableProviders.set(type, providerFactory);
-}
-
-@Injectable()
-export class StorageProviderFactory {
-  constructor(private readonly config: Config) {}
-
-  create(storage: StorageConfig): StorageProvider {
-    const providerFactory = availableProviders.get(storage.provider);
-
-    if (!providerFactory) {
-      throw new Error(`Unknown storage provider type: ${storage.provider}`);
+export type StorageProviderConfig = { bucket: string } & (
+  | {
+      provider: 'fs';
+      config: FsStorageConfig;
     }
-
-    return providerFactory(this.config, storage.bucket);
-  }
-}
+  | {
+      provider: 'aws-s3';
+      config: S3StorageConfig;
+    }
+  | {
+      provider: 'cloudflare-r2';
+      config: R2StorageConfig;
+    }
+);
 
 export type * from './provider';
+export { autoMetadata, toBuffer } from './utils';

@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 
-import { SessionCache } from '../../base';
+import { OnEvent, SessionCache } from '../../base';
+import { ServerFeature, ServerService } from '../../core';
 import { OAuthProviderName } from './config';
-import { OAuthProviderFactory } from './register';
+import { OAuthProviderFactory } from './factory';
 
 const OAUTH_STATE_KEY = 'OAUTH_STATE';
 
@@ -16,10 +17,11 @@ interface OAuthState {
 }
 
 @Injectable()
-export class OAuthService {
+export class OAuthService implements OnModuleInit {
   constructor(
     private readonly providerFactory: OAuthProviderFactory,
-    private readonly cache: SessionCache
+    private readonly cache: SessionCache,
+    private readonly server: ServerService
   ) {}
 
   isValidState(stateStr: string) {
@@ -41,5 +43,25 @@ export class OAuthService {
 
   availableOAuthProviders() {
     return this.providerFactory.providers;
+  }
+
+  onModuleInit() {
+    this.checkFeature();
+  }
+
+  @OnEvent('config.changed')
+  onConfigUpdated(event: Events['config.changed']) {
+    if ('oauth' in event.updates) {
+      this.checkFeature();
+    }
+  }
+
+  private checkFeature() {
+    const enabled = this.availableOAuthProviders().length > 0;
+    if (enabled) {
+      this.server.enableFeature(ServerFeature.OAuth);
+    } else {
+      this.server.disableFeature(ServerFeature.OAuth);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   createTestAccount,
   createTransport,
@@ -8,7 +8,7 @@ import {
 } from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
-import { Config, metrics } from '../../base';
+import { Config, metrics, OnEvent } from '../../base';
 
 export type SendOptions = Omit<SendMailOptions, 'to' | 'subject' | 'html'> & {
   to: string;
@@ -17,25 +17,40 @@ export type SendOptions = Omit<SendMailOptions, 'to' | 'subject' | 'html'> & {
 };
 
 @Injectable()
-export class MailSender implements OnModuleInit {
+export class MailSender {
   private readonly logger = new Logger(MailSender.name);
   private smtp: Transporter<SMTPTransport.SentMessageInfo> | null = null;
   private usingTestAccount = false;
   constructor(private readonly config: Config) {}
 
-  onModuleInit() {
-    this.createSMTP(this.config.mailer);
+  @OnEvent('config.init')
+  onConfigInit() {
+    this.setup();
   }
 
-  createSMTP(config: SMTPTransport.Options) {
-    if (config.host) {
-      this.smtp = createTransport(config);
-    } else if (this.config.node.dev) {
+  @OnEvent('config.changed')
+  onConfigChanged(event: Events['config.changed']) {
+    if ('mailer' in event.updates) {
+      this.setup();
+    }
+  }
+
+  setup() {
+    const { SMTP, enabled } = this.config.mailer;
+
+    if (!enabled) {
+      this.smtp = null;
+      return;
+    }
+
+    if (SMTP.host) {
+      this.smtp = createTransport(SMTP);
+    } else if (env.dev) {
       createTestAccount((err, account) => {
         if (!err) {
           this.smtp = createTransport({
             from: 'noreply@toeverything.info',
-            ...this.config.mailer,
+            ...SMTP,
             ...account.smtp,
             auth: {
               user: account.user,
@@ -59,7 +74,7 @@ export class MailSender implements OnModuleInit {
     metrics.mail.counter('send_total').add(1, { name });
     try {
       const result = await this.smtp.sendMail({
-        from: this.config.mailer.from,
+        from: this.config.mailer.SMTP.from,
         ...options,
       });
 

@@ -22,5 +22,4 @@ import { ServerService } from './service';
 })
 export class ServerConfigModule {}
 export { ServerService };
-export { ADD_ENABLED_FEATURES } from './server-feature';
 export { ServerFeature } from './types';

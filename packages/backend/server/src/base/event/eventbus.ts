@@ -14,7 +14,7 @@ import { once } from 'lodash-es';
 import { CLS_ID, ClsService, ClsServiceManager } from 'nestjs-cls';
 import type { Server, Socket } from 'socket.io';
 
-import { wrapCallMetric } from '../metrics';
+import { wrapCallMetric } from '../metrics/utils';
 import { genRequestId } from '../utils';
 import { type EventName, type EventOptions } from './def';
 import { EventHandlerScanner } from './scanner';

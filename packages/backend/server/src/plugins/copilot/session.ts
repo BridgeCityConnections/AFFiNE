@@ -17,6 +17,7 @@ import { QuotaService } from '../../core/quota';
 import { Models } from '../../models';
 import { ChatMessageCache } from './message';
 import { PromptService } from './prompt';
+import { PromptMessage, PromptParams } from './providers';
 import {
   AvailableModel,
   ChatHistory,
@@ -28,8 +29,6 @@ import {
   ChatSessionState,
   getTokenEncoder,
   ListHistoriesOptions,
-  PromptMessage,
-  PromptParams,
   SubmittedMessage,
 } from './types';
 

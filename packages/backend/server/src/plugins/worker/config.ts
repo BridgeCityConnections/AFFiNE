@@ -1,15 +1,21 @@
-import { defineStartupConfig, ModuleConfig } from '../../base/config';
+import { defineModuleConfig } from '../../base';
 
 export interface WorkerStartupConfigurations {
   allowedOrigin: string[];
 }
 
-declare module '../config' {
-  interface PluginsConfig {
-    worker: ModuleConfig<WorkerStartupConfigurations>;
+declare global {
+  interface AppConfig {
+    worker: {
+      enabled: boolean;
+      allowedOrigin: ConfigItem<string[]>;
+    };
   }
 }
 
-defineStartupConfig('plugins.worker', {
-  allowedOrigin: ['localhost', '127.0.0.1'],
+defineModuleConfig('worker', {
+  allowedOrigin: {
+    desc: 'Allowed origin',
+    default: ['localhost', '127.0.0.1'],
+  },
 });

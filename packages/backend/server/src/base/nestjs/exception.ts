@@ -25,7 +25,7 @@ import {
   UserFriendlyError,
   ValidationError,
 } from '../error';
-import { metrics } from '../metrics';
+import { metrics } from '../metrics/metrics';
 import { getRequestIdFromHost } from '../utils';
 
 export function isGraphQLBadRequest(error: GraphQLError) {

@@ -1,16 +1,13 @@
-import { ApplyType } from '../utils/types';
-import { AFFiNEConfig } from './def';
+import { FactoryProvider } from '@nestjs/common';
 
-/**
- * @example
- *
- * import { Config } from '@affine/server'
- *
- * class TestConfig {
- *   constructor(private readonly config: Config) {}
- *   test() {
- *     return this.config.env
- *   }
- * }
- */
-export class Config extends ApplyType<AFFiNEConfig>() {}
+import { Config } from './config';
+import { ConfigLoader } from './loader';
+
+export const ConfigProvider: FactoryProvider<Config> = {
+  provide: Config,
+  // @ts-expect-error allow
+  useFactory: (loader: ConfigLoader) => {
+    return loader.config;
+  },
+  inject: [ConfigLoader],
+};

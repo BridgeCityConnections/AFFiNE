@@ -1,0 +1,287 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AFFiNE Application Configuration",
+  "type": "object",
+  "properties": {
+    "redis": {
+      "type": "object",
+      "description": "Configuration for redis module",
+      "properties": {
+        "db": {
+          "description": "The database index of redis server to be used(Must be less than 10).\n@Environment `REDIS_DATABASE`",
+          "default": 0
+        },
+        "host": {
+          "description": "The host of the redis server.\n@Environment `REDIS_HOST`",
+          "default": "localhost"
+        },
+        "port": {
+          "description": "The port of the redis server.\n@Environment `REDIS_PORT`",
+          "default": 6379
+        },
+        "username": {
+          "description": "The username of the redis server.\n@Environment `REDIS_USERNAME`",
+          "default": ""
+        },
+        "password": {
+          "description": "The password of the redis server.\n@Environment `REDIS_PASSWORD`",
+          "default": ""
+        },
+        "ioredis": {
+          "description": "The config for the ioredis client.",
+          "default": {}
+        }
+      }
+    },
+    "graphql": {
+      "type": "object",
+      "description": "Configuration for graphql module",
+      "properties": {
+        "apolloDriverConfig": {
+          "description": "The config for underlying nestjs GraphQL and apollo driver engine.",
+          "default": {
+            "buildSchemaOptions": {
+              "numberScalarMode": "integer"
+            },
+            "useGlobalPrefix": true,
+            "playground": true,
+            "introspection": true,
+            "sortSchema": true
+          }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "description": "Configuration for server module",
+      "properties": {
+        "name": {
+          "description": "A recognizable name for the server. Will be shown when connected with AFFiNE Desktop."
+        },
+        "externalUrl": {
+          "description": "Base url of AFFiNE server, used for generating external urls.\nDefault to be `[server.protocol]://[server.host][:server.port]` if not specified.\n    \n@Environment `AFFINE_SERVER_EXTERNAL_URL`"
+        },
+        "https": {
+          "description": "Whether the server is hosted on a ssl enabled domain (https://).\n@Environment `AFFINE_SERVER_HTTPS`",
+          "default": false
+        },
+        "host": {
+          "description": "Where the server get deployed(FQDN).\n@Environment `AFFINE_SERVER_HOST`",
+          "default": "localhost"
+        },
+        "port": {
+          "description": "Which port the server will listen on.\n@Environment `AFFINE_SERVER_PORT`",
+          "default": 3010
+        },
+        "path": {
+          "description": "Subpath where the server get deployed if there is.\n@Environment `AFFINE_SERVER_SUB_PATH`",
+          "default": ""
+        }
+      }
+    },
+    "crypto": {
+      "type": "object",
+      "description": "Configuration for crypto module",
+      "properties": {
+        "privateKey": {
+          "description": "The private key for used by the crypto module to create signed tokens or encrypt data.\n@Environment `AFFINE_PRIVATE_KEY`"
+        }
+      }
+    },
+    "job": {
+      "type": "object",
+      "description": "Configuration for job module",
+      "properties": {
+        "queue": {
+          "description": "The config for job queues",
+          "default": {
+            "prefix": "affine_job",
+            "defaultJobOptions": {
+              "attempts": 5,
+              "removeOnComplete": true,
+              "removeOnFail": {
+                "age": 86400,
+                "count": 500
+              }
+            }
+          }
+        },
+        "worker": {
+          "description": "The config for job workers",
+          "default": {
+            "defaultWorkerOptions": {}
+          }
+        },
+        "queues.copilot": {
+          "description": "The config for copilot job queue",
+          "default": {
+            "concurrency": 1
+          }
+        },
+        "queues.doc": {
+          "description": "The config for doc job queue",
+          "default": {
+            "concurrency": 1
+          }
+        },
+        "queues.notification": {
+          "description": "The config for notification job queue",
+          "default": {
+            "concurrency": 10
+          }
+        },
+        "queues.nightly": {
+          "description": "The config for nightly job queue",
+          "default": {
+            "concurrency": 1
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Configuration for metrics module",
+      "properties": {
+        "enabled": {
+          "description": "Enable metric and tracing collection",
+          "default": false
+        },
+        "customerIo.token": {
+          "description": "Customer.io token\n@Environment `CUSTOMER_IO_TOKEN`"
+        }
+      }
+    },
+    "throttle": {
+      "type": "object",
+      "description": "Configuration for throttle module",
+      "properties": {
+        "enabled": {
+          "description": "Whether the throttler is enabled.",
+          "default": true
+        },
+        "throttlers.default": {
+          "description": "The config for the default throttler.",
+          "default": {
+            "ttl": 60,
+            "limit": 120
+          }
+        },
+        "throttlers.strict": {
+          "description": "The config for the strict throttler.",
+          "default": {
+            "ttl": 60,
+            "limit": 20
+          }
+        }
+      }
+    },
+    "websocket": {
+      "type": "object",
+      "description": "Configuration for websocket module",
+      "properties": {
+        "transports": {
+          "description": "The enabled transports for accepting websocket traffics.",
+          "default": [
+            "websocket",
+            "polling"
+          ]
+        },
+        "maxHttpBufferSize": {
+          "description": "How many bytes or characters a message can be, before closing the session (to avoid DoS).",
+          "default": 100000000
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "description": "Configuration for auth module",
+      "properties": {
+        "allowSignup": {
+          "description": "Whether allow new registrations.",
+          "default": true
+        },
+        "requireEmailDomainVerification": {
+          "description": "Whether require email domain record verification before accessing restricted resources.",
+          "default": false
+        },
+        "requireEmailVerification": {
+          "description": "Whether require email verification before accessing restricted resources(not implemented).",
+          "default": true
+        },
+        "passwordRequirements": {
+          "description": "The password strength requirements when set new password.",
+          "default": {
+            "min": 8,
+            "max": 32
+          }
+        },
+        "session.ttl": {
+          "description": "Application auth expiration time in seconds.",
+          "default": 1296000
+        },
+        "session.ttr": {
+          "description": "Application auth time to refresh in seconds.",
+          "default": 604800
+        }
+      }
+    },
+    "mailer": {
+      "type": "object",
+      "description": "Configuration for mailer module",
+      "properties": {
+        "enabled": {
+          "description": "Whether enabled mail service.",
+          "default": false
+        },
+        "SMTP": {
+          "description": "The SMTP configuration for the mail service.\n@link https://nodemailer.com/smtp/",
+          "default": {}
+        }
+      }
+    },
+    "doc": {
+      "type": "object",
+      "description": "Configuration for doc module",
+      "properties": {
+        "experimental.yocto": {
+          "description": "Use `y-octo` to merge updates at the same time when merging using Yjs.",
+          "default": false
+        },
+        "history.interval": {
+          "description": "The minimum time interval in milliseconds of creating a new history snapshot when doc get updated.",
+          "default": 600000
+        }
+      }
+    },
+    "storages": {
+      "type": "object",
+      "description": "Configuration for storages module",
+      "properties": {
+        "avatar.publicPath": {
+          "description": "The public accessible path prefix for user avatars.",
+          "default": "/api/avatars/"
+        },
+        "avatar.storage": {
+          "description": "The config of storage for user avatars.",
+          "default": {
+            "provider": "fs",
+            "bucket": "avatars",
+            "config": {
+              "path": "~/.affine/storage"
+            }
+          }
+        },
+        "blob.storage": {
+          "description": "The config of storage for all uploaded blobs(images, videos, etc.).",
+          "default": {
+            "provider": "fs",
+            "bucket": "blobs",
+            "config": {
+              "path": "~/.affine/storage"
+            }
+          }
+        }
+      }
+    }
+  }
+}

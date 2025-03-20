@@ -5,11 +5,11 @@ import Stripe from 'stripe';
 import { z } from 'zod';
 
 import {
+  Config,
   EventBus,
   InternalServerError,
   InvalidCheckoutParameters,
   Mutex,
-  Runtime,
   SubscriptionAlreadyExists,
   SubscriptionPlanNotFound,
   TooManyRequest,
@@ -55,7 +55,7 @@ export class UserSubscriptionManager extends SubscriptionManager {
   constructor(
     stripe: Stripe,
     db: PrismaClient,
-    private readonly runtime: Runtime,
+    private readonly config: Config,
     private readonly feature: FeatureService,
     private readonly event: EventBus,
     private readonly url: URLHelper,
@@ -588,7 +588,7 @@ export class UserSubscriptionManager extends SubscriptionManager {
     { proEarlyAccess, proSubscribed, onetime }: PriceStrategyStatus
   ) {
     if (lookupKey.recurring === SubscriptionRecurring.Lifetime) {
-      return this.runtime.fetch('plugins.payment/showLifetimePrice');
+      return this.config.payment.showLifetimePrice;
     }
 
     if (lookupKey.variant === SubscriptionVariant.Onetime) {

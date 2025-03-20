@@ -9,7 +9,6 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 
-import { ActionForbidden, Config } from '../../base';
 import { CurrentUser } from '../../core/auth';
 import { AccessController } from '../../core/permission';
 import { WorkspaceType } from '../../core/workspaces';
@@ -37,7 +36,6 @@ export class License {
 @Resolver(() => WorkspaceType)
 export class LicenseResolver {
   constructor(
-    private readonly config: Config,
     private readonly service: LicenseService,
     private readonly ac: AccessController
   ) {}
@@ -51,13 +49,6 @@ export class LicenseResolver {
     @CurrentUser() user: CurrentUser,
     @Parent() workspace: WorkspaceType
   ): Promise<License | null> {
-    // NOTE(@forehalo):
-    //   we can't simply disable license resolver for non-selfhosted server
-    //   it will make the gql codegen messed up.
-    if (!this.config.isSelfhosted) {
-      return null;
-    }
-
     await this.ac
       .user(user.id)
       .workspace(workspace.id)
@@ -71,10 +62,6 @@ export class LicenseResolver {
     @Args('workspaceId') workspaceId: string,
     @Args('license') license: string
   ) {
-    if (!this.config.isSelfhosted) {
-      throw new ActionForbidden();
-    }
-
     await this.ac
       .user(user.id)
       .workspace(workspaceId)
@@ -88,10 +75,6 @@ export class LicenseResolver {
     @CurrentUser() user: CurrentUser,
     @Args('workspaceId') workspaceId: string
   ) {
-    if (!this.config.isSelfhosted) {
-      throw new ActionForbidden();
-    }
-
     await this.ac
       .user(user.id)
       .workspace(workspaceId)
@@ -105,10 +88,6 @@ export class LicenseResolver {
     @CurrentUser() user: CurrentUser,
     @Args('workspaceId') workspaceId: string
   ) {
-    if (!this.config.isSelfhosted) {
-      throw new ActionForbidden();
-    }
-
     await this.ac
       .user(user.id)
       .workspace(workspaceId)

@@ -1,18 +1,43 @@
-import assert from 'node:assert';
-
-import { FactoryProvider } from '@nestjs/common';
+import { FactoryProvider, Injectable } from '@nestjs/common';
 import { omit } from 'lodash-es';
 import Stripe from 'stripe';
 
-import { Config } from '../../base';
+import { Config, OnEvent } from '../../base';
+
+@Injectable()
+export class StripeInstanceWrapper {
+  #stripe!: Stripe;
+
+  constructor(private readonly config: Config) {
+    this.setup();
+  }
+
+  get stripe() {
+    return this.#stripe;
+  }
+
+  setup() {
+    this.#stripe = new Stripe(this.config.payment.apiKey, {
+      ...omit(this.config.payment.stripe, 'keys'),
+    });
+  }
+
+  onModuleInit() {
+    this.setup();
+  }
+
+  @OnEvent('config.changed')
+  async onConfigChanged(event: Events['config.changed']) {
+    if ('payment' in event.updates) {
+      this.setup();
+    }
+  }
+}
 
 export const StripeProvider: FactoryProvider = {
   provide: Stripe,
-  useFactory: (config: Config) => {
-    const stripeConfig = config.plugins.payment.stripe;
-    assert(stripeConfig, 'Stripe configuration is missing');
-
-    return new Stripe(stripeConfig.keys.APIKey, omit(stripeConfig, 'keys'));
+  useFactory: (provider: StripeInstanceWrapper) => {
+    return provider.stripe;
   },
-  inject: [Config],
+  inject: [StripeInstanceWrapper],
 };

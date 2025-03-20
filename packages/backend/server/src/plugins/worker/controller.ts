@@ -41,7 +41,7 @@ export class WorkerController {
     private readonly url: URLHelper
   ) {
     this.allowedOrigin = [
-      ...config.plugins.worker.allowedOrigin
+      ...config.worker.allowedOrigin
         .map(u => fixUrl(u)?.origin as string)
         .filter(v => !!v),
       url.origin,

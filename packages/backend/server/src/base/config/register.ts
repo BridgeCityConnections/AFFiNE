@@ -1,66 +1,130 @@
-import { Prisma, RuntimeConfigType } from '@prisma/client';
-import { get, merge, set } from 'lodash-es';
+import { set } from 'lodash-es';
+import { ZodType } from 'zod';
 
-import {
-  AppModulesConfigDef,
-  AppStartupConfig,
-  ModuleRuntimeConfigDescriptions,
-  ModuleStartupConfigDescriptions,
-} from './types';
+import { ModularizedAppConfig } from './types';
 
-export const defaultStartupConfig: AppStartupConfig = {} as any;
-export const defaultRuntimeConfig: Record<
-  string,
-  Prisma.RuntimeConfigCreateInput
-> = {} as any;
+export type EnvConfigType = 'string' | 'int' | 'float' | 'boolean';
 
-export function runtimeConfigType(val: any): RuntimeConfigType {
-  if (Array.isArray(val)) {
-    return RuntimeConfigType.Array;
+export type ConfigDescription<T> = {
+  desc: string;
+  default?: T;
+  validate?: (value: T) => boolean;
+  shape?: ZodType<T>;
+  env?: string | [string, EnvConfigType?];
+  link?: string;
+};
+
+type AppConfigDescriptors<T> = {
+  [K in keyof T]: T[K] extends ConfigItem<infer V>
+    ? ConfigDescription<V>
+    : ConfigDescription<T[K]>;
+};
+
+export function defaultValidator(
+  defaultValue: any,
+  shape?: ZodType<any>
+): ((val: any) => boolean) | undefined {
+  if (shape) {
+    return val => shape.safeParse(val).success;
   }
 
-  switch (typeof val) {
+  switch (typeof defaultValue) {
     case 'string':
-      return RuntimeConfigType.String;
+      return val => typeof val === 'string';
     case 'number':
-      return RuntimeConfigType.Number;
+      return val => typeof val === 'number';
     case 'boolean':
-      return RuntimeConfigType.Boolean;
+      return val => typeof val === 'boolean';
     default:
-      return RuntimeConfigType.Object;
+      return undefined;
   }
 }
+/**
+ * parse number value from environment variables
+ */
+function int(value: string) {
+  const n = parseInt(value);
+  return Number.isNaN(n) ? undefined : n;
+}
 
-function registerRuntimeConfig<T extends keyof AppModulesConfigDef>(
+function float(value: string) {
+  const n = parseFloat(value);
+  return Number.isNaN(n) ? undefined : n;
+}
+
+function boolean(value: string) {
+  return value === '1' || value.toLowerCase() === 'true';
+}
+
+const envParsers: Record<EnvConfigType, (value: string) => unknown> = {
+  int,
+  float,
+  boolean,
+  string: value => value,
+};
+
+export function parseEnvValue(value: string | undefined, type: EnvConfigType) {
+  if (value === undefined) {
+    return;
+  }
+
+  return envParsers[type](value);
+}
+
+export const APP_CONFIG_DESCRIPTORS: Record<
+  string,
+  Record<string, ConfigDescription<any>>
+> = {};
+
+export function defineModuleConfig<T extends keyof ModularizedAppConfig>(
   module: T,
-  configs: ModuleRuntimeConfigDescriptions<T>
+  defs: AppConfigDescriptors<ModularizedAppConfig[T]>
 ) {
-  Object.entries(configs).forEach(([key, value]) => {
-    defaultRuntimeConfig[`${module}/${key}`] = {
-      id: `${module}/${key}`,
-      module,
-      key,
-      description: value.desc,
-      value: value.default,
-      type: runtimeConfigType(value.default),
-    };
+  // set default validators from `shape` or `primitive type`
+  (Object.values(defs) as ConfigDescription<any>[]).forEach(value => {
+    if (!value.validate) {
+      value.validate = defaultValidator(value.default, value.shape);
+    }
   });
+
+  APP_CONFIG_DESCRIPTORS[module] = {
+    ...APP_CONFIG_DESCRIPTORS[module],
+    ...defs,
+  };
 }
 
-export function defineStartupConfig<T extends keyof AppModulesConfigDef>(
-  module: T,
-  configs: ModuleStartupConfigDescriptions<AppModulesConfigDef[T]>
-) {
-  set(
-    defaultStartupConfig,
-    module,
-    merge(get(defaultStartupConfig, module, {}), configs)
-  );
-}
+export function getDefaultConfig(): AppConfig {
+  const config: Record<string, any> = {};
+  const envs = process.env;
 
-export function defineRuntimeConfig<T extends keyof AppModulesConfigDef>(
-  module: T,
-  configs: ModuleRuntimeConfigDescriptions<T>
-) {
-  registerRuntimeConfig(module, configs);
+  for (const [module, defs] of Object.entries(APP_CONFIG_DESCRIPTORS)) {
+    const modulizedConfig = {};
+
+    for (const [key, desc] of Object.entries(defs)) {
+      let defaultValue = desc.default;
+
+      if (desc.env) {
+        const [env, parser = 'string'] = Array.isArray(desc.env)
+          ? desc.env
+          : [desc.env];
+
+        const envValue = envs[env];
+        if (envValue) {
+          defaultValue = parseEnvValue(envValue, parser);
+        }
+      }
+
+      if (desc.validate && !desc.validate(defaultValue)) {
+        throw new Error(
+          `Invalid config value for ${module}.${key}, got ${defaultValue}`
+        );
+      }
+
+      set(modulizedConfig, key, defaultValue);
+    }
+
+    config[module] = modulizedConfig;
+  }
+
+  return config as AppConfig;
 }

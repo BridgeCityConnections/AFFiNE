@@ -1,37 +1,19 @@
-import { DynamicModule, FactoryProvider } from '@nestjs/common';
-import { merge } from 'lodash-es';
+import { DynamicModule } from '@nestjs/common';
 
-import { AFFiNEConfig } from './def';
-import { Config } from './provider';
-
-export * from './def';
-export * from './default';
-export { applyEnvToConfig, parseEnvValue } from './env';
-export * from './provider';
-export { defineRuntimeConfig, defineStartupConfig } from './register';
-export type { AppConfig, ConfigItem, ModuleConfig } from './types';
-
-function createConfigProvider(
-  override?: DeepPartial<Config>
-): FactoryProvider<Config> {
-  return {
-    provide: Config,
-    useFactory: () => {
-      return Object.freeze(merge({}, globalThis.AFFiNE, override));
-    },
-    inject: [],
-  };
-}
+import { Config } from './config';
+import { ConfigLoader } from './loader';
+import { ConfigProvider } from './provider';
 
 export class ConfigModule {
-  static forRoot = (override?: DeepPartial<AFFiNEConfig>): DynamicModule => {
-    const provider = createConfigProvider(override);
-
+  static forRoot(overrides: DeepPartial<AppConfig> = {}): DynamicModule {
     return {
       global: true,
       module: ConfigModule,
-      providers: [provider],
-      exports: [provider],
+      providers: [ConfigProvider, ConfigLoader.withOverrides(overrides)],
+      exports: [ConfigProvider, ConfigLoader],
     };
-  };
+  }
 }
+
+export { Config, ConfigLoader };
+export { defineModuleConfig } from './register';

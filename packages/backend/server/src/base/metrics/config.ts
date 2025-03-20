@@ -1,33 +1,24 @@
-import { defineStartupConfig, ModuleConfig } from '../config';
+import { defineModuleConfig } from '../config';
 
-declare module '../config' {
+declare global {
   interface AppConfig {
-    metrics: ModuleConfig<{
-      /**
-       * Enable metric and tracing collection
-       */
+    metrics: {
       enabled: boolean;
-      /**
-       * Enable telemetry
-       */
-      telemetry: {
-        enabled: boolean;
-        token: string;
-      };
+      // TODO(@forehalo): move to `plugins`
       customerIo: {
         token: string;
       };
-    }>;
+    };
   }
 }
 
-defineStartupConfig('metrics', {
-  enabled: false,
-  telemetry: {
-    enabled: false,
-    token: '',
+defineModuleConfig('metrics', {
+  enabled: {
+    desc: 'Enable metric and tracing collection',
+    default: false,
   },
-  customerIo: {
-    token: '',
+  'customerIo.token': {
+    desc: 'Customer.io token',
+    env: 'CUSTOMER_IO_TOKEN',
   },
 });

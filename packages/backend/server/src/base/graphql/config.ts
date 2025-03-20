@@ -1,17 +1,26 @@
 import { ApolloDriverConfig } from '@nestjs/apollo';
 
-import { defineStartupConfig, ModuleConfig } from '../../base/config';
+import { defineModuleConfig } from '../config';
 
-declare module '../../base/config' {
+declare global {
   interface AppConfig {
-    graphql: ModuleConfig<ApolloDriverConfig>;
+    graphql: {
+      apolloDriverConfig: ConfigItem<ApolloDriverConfig>;
+    };
   }
 }
 
-defineStartupConfig('graphql', {
-  buildSchemaOptions: {
-    numberScalarMode: 'integer',
+defineModuleConfig('graphql', {
+  apolloDriverConfig: {
+    desc: 'The config for underlying nestjs GraphQL and apollo driver engine.',
+    default: {
+      buildSchemaOptions: {
+        numberScalarMode: 'integer',
+      },
+      useGlobalPrefix: true,
+      playground: true,
+      introspection: true,
+      sortSchema: true,
+    },
   },
-  introspection: true,
-  playground: true,
 });

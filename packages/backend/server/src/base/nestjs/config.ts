@@ -1,39 +1,54 @@
-import { defineStartupConfig, ModuleConfig } from '../../base/config';
+import { defineModuleConfig } from '../config';
 
-export interface ServerStartupConfigurations {
-  /**
-   * Base url of AFFiNE server, used for generating external urls.
-   * default to be `[AFFiNE.protocol]://[AFFiNE.host][:AFFiNE.port]/[AFFiNE.path]` if not specified
-   */
-  externalUrl: string;
-  /**
-   * Whether the server is hosted on a ssl enabled domain
-   */
-  https: boolean;
-  /**
-   * where the server get deployed(FQDN).
-   */
-  host: string;
-  /**
-   * which port the server will listen on
-   */
-  port: number;
-  /**
-   * subpath where the server get deployed if there is.
-   */
-  path: string;
-}
-
-declare module '../../base/config' {
+declare global {
   interface AppConfig {
-    server: ModuleConfig<ServerStartupConfigurations>;
+    server: {
+      externalUrl: string;
+      https: boolean;
+      host: string;
+      port: number;
+      path: string;
+      name: string | undefined;
+    };
   }
 }
 
-defineStartupConfig('server', {
-  externalUrl: '',
-  https: false,
-  host: 'localhost',
-  port: 3010,
-  path: '',
+defineModuleConfig('server', {
+  name: {
+    desc: 'A recognizable name for the server. Will be shown when connected with AFFiNE Desktop.',
+  },
+  externalUrl: {
+    desc: `Base url of AFFiNE server, used for generating external urls.
+Default to be \`[server.protocol]://[server.host][:server.port]\` if not specified.
+    `,
+    env: 'AFFINE_SERVER_EXTERNAL_URL',
+    validate: (value: string) => {
+      try {
+        new URL(value);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+  },
+  https: {
+    desc: 'Whether the server is hosted on a ssl enabled domain (https://).',
+    default: false,
+    env: ['AFFINE_SERVER_HTTPS', 'boolean'],
+  },
+  host: {
+    desc: 'Where the server get deployed(FQDN).',
+    default: 'localhost',
+    env: 'AFFINE_SERVER_HOST',
+  },
+  port: {
+    desc: 'Which port the server will listen on.',
+    default: 3010,
+    env: ['AFFINE_SERVER_PORT', 'int'],
+  },
+  path: {
+    desc: 'Subpath where the server get deployed if there is.',
+    default: '',
+    env: 'AFFINE_SERVER_SUB_PATH',
+  },
 });

@@ -20,6 +20,7 @@ export class JobModule {
           useFactory: (config: Config, redis: QueueRedis) => {
             return {
               ...config.job.queue,
+              prefix: env.testing ? 'affine_job_test' : config.job.queue.prefix,
               connection: redis,
             };
           },

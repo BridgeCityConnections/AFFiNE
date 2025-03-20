@@ -1,19 +1,18 @@
-import { defineStartupConfig, ModuleConfig } from '../../base/config';
+import { z } from 'zod';
 
-interface DocServiceStartupConfigurations {
-  /**
-   * The endpoint of the doc service.
-   * Example: http://doc-service:3020
-   */
-  endpoint: string;
-}
+import { defineModuleConfig } from '../../base';
 
-declare module '../../base/config' {
+declare global {
   interface AppConfig {
-    docService: ModuleConfig<DocServiceStartupConfigurations>;
+    docService: {
+      endpoint: string;
+    };
   }
 }
 
-defineStartupConfig('docService', {
-  endpoint: '',
+defineModuleConfig('docService', {
+  endpoint: {
+    desc: 'The endpoint of the doc service.',
+    shape: z.string().url(),
+  },
 });

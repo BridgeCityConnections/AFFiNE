@@ -53,7 +53,7 @@ export class AuthService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    if (this.config.node.dev) {
+    if (env.dev) {
       const devUsers: {
         email: string;
         name: string;
@@ -99,10 +99,12 @@ export class AuthService implements OnApplicationBootstrap {
   }
 
   /**
+   * @deprecated
+   *
    * This is a test only helper to quickly signup a user, do not use in production
    */
   async signUp(email: string, password: string): Promise<CurrentUser> {
-    if (!this.config.node.test) {
+    if (!env.testing) {
       throw new SignUpForbidden(
         'sign up helper is forbidden for non-test environment'
       );

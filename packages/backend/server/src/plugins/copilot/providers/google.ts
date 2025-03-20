@@ -2,7 +2,6 @@ import {
   createGoogleGenerativeAI,
   type GoogleGenerativeAIProvider,
 } from '@ai-sdk/google';
-import { Logger } from '@nestjs/common';
 import {
   AISDKError,
   type CoreAssistantMessage,
@@ -19,6 +18,7 @@ import {
   metrics,
   UserFriendlyError,
 } from '../../../base';
+import { CopilotProvider } from './provider';
 import {
   ChatMessageRole,
   CopilotCapability,
@@ -26,7 +26,7 @@ import {
   CopilotProviderType,
   CopilotTextToTextProvider,
   PromptMessage,
-} from '../types';
+} from './types';
 
 export const DEFAULT_DIMENSIONS = 256;
 
@@ -56,38 +56,31 @@ export type GoogleConfig = {
 
 type ChatMessage = CoreUserMessage | CoreAssistantMessage;
 
-export class GoogleProvider implements CopilotTextToTextProvider {
-  static readonly type = CopilotProviderType.Google;
-  static readonly capabilities = [CopilotCapability.TextToText];
-
-  readonly availableModels = [
+export class GoogleProvider
+  extends CopilotProvider<GoogleConfig>
+  implements CopilotTextToTextProvider
+{
+  override readonly type = CopilotProviderType.Google;
+  override readonly capabilities = [CopilotCapability.TextToText];
+  override readonly models = [
     // text to text
     'gemini-2.0-flash-001',
     // embeddings
     'text-embedding-004',
   ];
 
-  private readonly logger = new Logger(GoogleProvider.name);
-  private readonly instance: GoogleGenerativeAIProvider;
+  #instance!: GoogleGenerativeAIProvider;
 
-  constructor(config: GoogleConfig) {
-    this.instance = createGoogleGenerativeAI(config);
+  override configured(): boolean {
+    return !!this.config.apiKey;
   }
 
-  static assetsConfig(config: GoogleConfig) {
-    return !!config?.apiKey;
-  }
-
-  get type(): CopilotProviderType {
-    return GoogleProvider.type;
-  }
-
-  getCapabilities(): CopilotCapability[] {
-    return GoogleProvider.capabilities;
-  }
-
-  async isModelAvailable(model: string): Promise<boolean> {
-    return this.availableModels.includes(model);
+  protected override setup() {
+    super.setup();
+    this.#instance = createGoogleGenerativeAI({
+      apiKey: this.config.apiKey,
+      baseURL: this.config.baseUrl,
+    });
   }
 
   private inferMimeType(url: string) {
@@ -239,7 +232,7 @@ export class GoogleProvider implements CopilotTextToTextProvider {
       const [system, msgs] = await this.chatToGPTMessage(messages);
 
       const { text } = await generateText({
-        model: this.instance(model, {
+        model: this.#instance(model, {
           audioTimestamp: Boolean(options.audioTimestamp),
           structuredOutputs: Boolean(options.jsonMode),
         }),
@@ -268,7 +261,7 @@ export class GoogleProvider implements CopilotTextToTextProvider {
       const [system, msgs] = await this.chatToGPTMessage(messages);
 
       const { textStream } = streamText({
-        model: this.instance(model),
+        model: this.#instance(model),
         system,
         messages: msgs,
         abortSignal: options.signal,

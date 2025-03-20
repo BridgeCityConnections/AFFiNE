@@ -1,14 +1,13 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { z } from 'zod';
 
-import { Config, URLHelper } from '../../../base';
+import { URLHelper } from '../../../base';
 import {
   OAuthOIDCProviderConfig,
   OAuthProviderName,
   OIDCArgs,
 } from '../config';
-import { AutoRegisteredOAuthProvider } from '../register';
-import { OAuthAccount, Tokens } from './def';
+import { OAuthAccount, OAuthProvider, Tokens } from './def';
 
 const OIDCTokenSchema = z.object({
   access_token: z.string(),
@@ -163,25 +162,21 @@ class OIDCClient {
 }
 
 @Injectable()
-export class OIDCProvider
-  extends AutoRegisteredOAuthProvider
-  implements OnModuleInit
-{
+export class OIDCProvider extends OAuthProvider implements OnModuleInit {
   override provider = OAuthProviderName.OIDC;
   private client: OIDCClient | null = null;
 
-  constructor(
-    protected readonly AFFiNEConfig: Config,
-    private readonly url: URLHelper
-  ) {
+  constructor(private readonly url: URLHelper) {
     super();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   override async onModuleInit() {
-    const config = this.optionalConfig as OAuthOIDCProviderConfig;
-    if (config && config.issuer && config.clientId && config.clientSecret) {
-      this.client = await OIDCClient.create(config, this.url);
+    if (this.configured) {
+      this.client = await OIDCClient.create(
+        this.config as OAuthOIDCProviderConfig,
+        this.url
+      );
       super.onModuleInit();
     }
   }

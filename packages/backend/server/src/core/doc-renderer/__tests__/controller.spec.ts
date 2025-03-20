@@ -5,9 +5,10 @@ import ava, { TestFn } from 'ava';
 import { Doc as YDoc } from 'yjs';
 
 import { createTestingApp, type TestingApp } from '../../../__tests__/utils';
-import { AppModule } from '../../../app.module';
+import { buildAppModule } from '../../../app.module';
 import { Config } from '../../../base';
 import { ConfigModule } from '../../../base/config';
+import { Flavor } from '../../../env';
 import { Models } from '../../../models';
 import { PgWorkspaceDocStorageAdapter } from '../../doc';
 
@@ -22,14 +23,14 @@ test.before(async t => {
   const app = await createTestingApp({
     imports: [
       ConfigModule.forRoot({
-        flavor: {
-          doc: false,
-        },
         docService: {
           endpoint: '',
         },
       }),
-      AppModule,
+      buildAppModule({
+        ...env,
+        FLAVOR: Flavor.Renderer,
+      }),
     ],
   });
 

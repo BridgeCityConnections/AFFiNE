@@ -2,6 +2,8 @@ import {
   createCipheriv,
   createDecipheriv,
   createHash,
+  createPrivateKey,
+  createPublicKey,
   createSign,
   createVerify,
   randomBytes,
@@ -15,14 +17,42 @@ import {
   verify as verifyPassword,
 } from '@node-rs/argon2';
 
-import { Config } from '../config';
+import { OnEvent } from '../event';
 
 const NONCE_LENGTH = 12;
 const AUTH_TAG_LENGTH = 12;
 
+// Don't use this in production
+const examplePrivateKey = `-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIEtyAJLIULkphVhqXqxk4Nr8Ggty3XLwUJWBxzAWCWTMoAoGCCqGSM49
+AwEHoUQDQgAEF3U/0wIeJ3jRKXeFKqQyBKlr9F7xaAUScRrAuSP33rajm3cdfihI
+3JvMxVNsS2lE8PSGQrvDrJZaDo0L+Lq9Gg==
+-----END EC PRIVATE KEY-----`;
+
+function generatePrivateKey(privateKey: string) {
+  return createPrivateKey({
+    key: Buffer.from(privateKey),
+    format: 'pem',
+    type: 'sec1',
+  })
+    .export({
+      format: 'pem',
+      type: 'pkcs8',
+    })
+    .toString('utf8');
+}
+
+function generatePublicKey(privateKey: string) {
+  return createPublicKey({
+    key: Buffer.from(privateKey),
+  })
+    .export({ format: 'pem', type: 'spki' })
+    .toString('utf8');
+}
+
 @Injectable()
 export class CryptoHelper {
-  keyPair: {
+  keyPair!: {
     publicKey: Buffer;
     privateKey: Buffer;
     sha256: {
@@ -31,13 +61,20 @@ export class CryptoHelper {
     };
   };
 
-  constructor(config: Config) {
+  @OnEvent('config.init')
+  onConfigInit(event: Events['config.init']) {
+    const privateKey = generatePrivateKey(
+      event.config.crypto.privateKey ?? examplePrivateKey
+    );
+    const publicKey = generatePublicKey(
+      event.config.crypto.privateKey ?? examplePrivateKey
+    );
     this.keyPair = {
-      publicKey: Buffer.from(config.crypto.secret.publicKey, 'utf8'),
-      privateKey: Buffer.from(config.crypto.secret.privateKey, 'utf8'),
+      publicKey: Buffer.from(publicKey, 'utf8'),
+      privateKey: Buffer.from(privateKey, 'utf8'),
       sha256: {
-        publicKey: this.sha256(config.crypto.secret.publicKey),
-        privateKey: this.sha256(config.crypto.secret.privateKey),
+        publicKey: this.sha256(publicKey),
+        privateKey: this.sha256(privateKey),
       },
     };
   }

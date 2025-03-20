@@ -20,6 +20,7 @@
     "data-migration": "cross-env NODE_ENV=development r ./src/data/index.ts",
     "init": "yarn prisma migrate dev && yarn data-migration run",
     "seed": "r ./src/seed/index.ts",
+    "genconfig": "r ./scripts/genconfig.ts",
     "predeploy": "yarn prisma migrate deploy && node --import ./scripts/register.js ./dist/data/index.js run",
     "postinstall": "prisma generate"
   },

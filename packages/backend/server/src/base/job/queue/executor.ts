@@ -11,7 +11,6 @@ import { CLS_ID, ClsServiceManager } from 'nestjs-cls';
 import { Config } from '../../config';
 import { metrics, wrapCallMetric } from '../../metrics';
 import { QueueRedis } from '../../redis';
-import { Runtime } from '../../runtime';
 import { genRequestId } from '../../utils';
 import { JOB_SIGNAL, namespace, Queue, QUEUES } from './def';
 import { JobHandlerScanner } from './scanner';
@@ -21,22 +20,19 @@ export class JobExecutor
   implements OnApplicationBootstrap, OnApplicationShutdown
 {
   private readonly logger = new Logger('job');
-  private readonly workers: Record<string, Worker> = {};
+  private readonly workers: Map<Queue, Worker> = new Map();
 
   constructor(
     private readonly config: Config,
     private readonly redis: QueueRedis,
-    private readonly scanner: JobHandlerScanner,
-    private readonly runtime: Runtime
+    private readonly scanner: JobHandlerScanner
   ) {}
 
   async onApplicationBootstrap() {
-    const queues = this.config.flavor.graphql
-      ? difference(QUEUES, [Queue.DOC])
-      : [];
+    const queues = env.flavors.graphql ? difference(QUEUES, [Queue.DOC]) : [];
 
     // NOTE(@forehalo): only enable doc queue in doc service
-    if (this.config.flavor.doc) {
+    if (env.flavors.doc) {
       queues.push(Queue.DOC);
     }
 
@@ -98,26 +94,19 @@ export class JobExecutor
     }
   }
 
-  private async startWorkers(queues: Queue[]) {
-    const configs =
-      (await this.runtime.fetchAll(
-        queues.reduce(
-          (ret, queue) => {
-            ret[`job/queues.${queue}.concurrency`] = true;
-            return ret;
-          },
-          {} as {
-            [key in `job/queues.${Queue}.concurrency`]: true;
-          }
-        )
-        // TODO(@forehalo): fix the override by [payment/service.spec.ts]
-      )) ?? {};
+  setConcurrency(queue: Queue, concurrency: number) {
+    const worker = this.workers.get(queue);
+    if (!worker) {
+      throw new Error(`Worker for [${queue}] not found.`);
+    }
 
+    worker.concurrency = concurrency;
+  }
+
+  private async startWorkers(queues: Queue[]) {
     for (const queue of queues) {
-      const concurrency =
-        (configs[`job/queues.${queue}.concurrency`] as number) ??
-        this.config.job.worker.concurrency ??
-        1;
+      const queueOptions = this.config.job.queues[queue];
+      const concurrency = queueOptions.concurrency ?? 1;
 
       const worker = new Worker(
         queue,
@@ -127,8 +116,9 @@ export class JobExecutor
         {
           ...this.config.job.queue,
           ...this.config.job.worker,
-          connection: this.redis,
+          ...queueOptions,
           concurrency,
+          connection: this.redis,
         }
       );
 
@@ -140,7 +130,7 @@ export class JobExecutor
         `Queue Worker [${queue}] started; concurrency=${concurrency};`
       );
 
-      this.workers[queue] = worker;
+      this.workers.set(queue, worker);
     }
   }
 

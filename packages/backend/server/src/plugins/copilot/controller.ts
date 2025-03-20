@@ -42,13 +42,19 @@ import {
   mapSseError,
   metrics,
   NoCopilotProviderAvailable,
+  OnEvent,
   UnsplashIsNotConfigured,
 } from '../../base';
+import { ServerFeature, ServerService } from '../../core';
 import { CurrentUser, Public } from '../../core/auth';
-import { CopilotProviderService } from './providers';
+import {
+  CopilotCapability,
+  CopilotProviderFactory,
+  CopilotTextProvider,
+} from './providers';
 import { ChatSession, ChatSessionService } from './session';
 import { CopilotStorage } from './storage';
-import { ChatMessage, CopilotCapability, CopilotTextProvider } from './types';
+import { ChatMessage } from './types';
 import { CopilotWorkflowService, GraphExecutorState } from './workflow';
 
 export interface ChatEvent {
@@ -72,10 +78,31 @@ export class CopilotController implements BeforeApplicationShutdown {
   constructor(
     private readonly config: Config,
     private readonly chatSession: ChatSessionService,
-    private readonly provider: CopilotProviderService,
+    private readonly provider: CopilotProviderFactory,
     private readonly workflow: CopilotWorkflowService,
-    private readonly storage: CopilotStorage
+    private readonly storage: CopilotStorage,
+    private readonly server: ServerService
   ) {}
+
+  @OnEvent('config.init')
+  onConfigInit() {
+    this.setup();
+  }
+
+  @OnEvent('config.changed')
+  onConfigUpdated(event: Events['config.changed']) {
+    if ('copilot' in event.updates) {
+      this.setup();
+    }
+  }
+
+  private setup() {
+    if (this.config.copilot.enabled) {
+      this.server.enableFeature(ServerFeature.Copilot);
+    } else {
+      this.server.disableFeature(ServerFeature.Copilot);
+    }
+  }
 
   async beforeApplicationShutdown() {
     await lastValueFrom(
@@ -121,13 +148,13 @@ export class CopilotController implements BeforeApplicationShutdown {
     );
     let provider = await this.provider.getProviderByCapability(
       CopilotCapability.TextToText,
-      model
+      { model }
     );
     // fallback to image to text if text to text is not available
     if (!provider && hasAttachment) {
       provider = await this.provider.getProviderByCapability(
         CopilotCapability.ImageToText,
-        model
+        { model }
       );
     }
     if (!provider) {
@@ -478,7 +505,7 @@ export class CopilotController implements BeforeApplicationShutdown {
         hasAttachment
           ? CopilotCapability.ImageToImage
           : CopilotCapability.TextToImage,
-        model
+        { model }
       );
       if (!provider) {
         throw new NoCopilotProviderAvailable();
@@ -565,8 +592,8 @@ export class CopilotController implements BeforeApplicationShutdown {
     @Res() res: Response,
     @Query() params: Record<string, string>
   ) {
-    const { unsplashKey } = this.config.plugins.copilot || {};
-    if (!unsplashKey) {
+    const { key } = this.config.copilot.unsplash;
+    if (!key) {
       throw new UnsplashIsNotConfigured();
     }
 
@@ -574,7 +601,7 @@ export class CopilotController implements BeforeApplicationShutdown {
     const response = await fetch(
       `https://api.unsplash.com/search/photos?${query}`,
       {
-        headers: { Authorization: `Client-ID ${unsplashKey}` },
+        headers: { Authorization: `Client-ID ${key}` },
         signal: this.getSignal(req),
       }
     );

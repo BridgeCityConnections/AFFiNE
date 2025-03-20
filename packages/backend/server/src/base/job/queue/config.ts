@@ -1,61 +1,71 @@
 import { QueueOptions, WorkerOptions } from 'bullmq';
 
-import {
-  defineRuntimeConfig,
-  defineStartupConfig,
-  ModuleConfig,
-} from '../../config';
+import { defineModuleConfig } from '../../config';
 import { Queue } from './def';
 
-declare module '../../config' {
+declare global {
   interface AppConfig {
-    job: ModuleConfig<
-      {
-        queue: Omit<QueueOptions, 'connection'>;
-        worker: Omit<WorkerOptions, 'connection'>;
-      },
-      {
-        queues: {
-          [key in Queue]: {
-            concurrency: number;
-          };
-        };
-      }
-    >;
+    job: {
+      queue: ConfigItem<Omit<QueueOptions, 'connection' | 'telemetry'>>;
+      worker: ConfigItem<{
+        defaultWorkerOptions: Omit<WorkerOptions, 'connection' | 'telemetry'>;
+      }>;
+      queues: {
+        [key in Queue]: ConfigItem<Omit<WorkerOptions, 'connection'>>;
+      };
+    };
   }
 }
 
-defineStartupConfig('job', {
+defineModuleConfig('job', {
   queue: {
-    prefix: AFFiNE.node.test ? 'affine_job_test' : 'affine_job',
-    defaultJobOptions: {
-      attempts: 5,
-      // should remove job after it's completed, because we will add a new job with the same job id
-      removeOnComplete: true,
-      removeOnFail: {
-        age: 24 * 3600 /* 1 day */,
-        count: 500,
+    desc: 'The config for job queues',
+    default: {
+      prefix: 'affine_job',
+      defaultJobOptions: {
+        attempts: 5,
+        // should remove job after it's completed, because we will add a new job with the same job id
+        removeOnComplete: true,
+        removeOnFail: {
+          age: 24 * 3600 /* 1 day */,
+          count: 500,
+        },
       },
     },
   },
-  worker: {},
-});
 
-defineRuntimeConfig('job', {
-  'queues.nightly.concurrency': {
-    default: 1,
-    desc: 'Concurrency of worker consuming of nightly checking job queue',
+  worker: {
+    desc: 'The config for job workers',
+    default: {
+      defaultWorkerOptions: {},
+    },
   },
-  'queues.notification.concurrency': {
-    default: 10,
-    desc: 'Concurrency of worker consuming of notification job queue',
+
+  'queues.copilot': {
+    desc: 'The config for copilot job queue',
+    default: {
+      concurrency: 1,
+    },
   },
-  'queues.doc.concurrency': {
-    default: 1,
-    desc: 'Concurrency of worker consuming of doc job queue',
+
+  'queues.doc': {
+    desc: 'The config for doc job queue',
+    default: {
+      concurrency: 1,
+    },
   },
-  'queues.copilot.concurrency': {
-    default: 1,
-    desc: 'Concurrency of worker consuming of copilot job queue',
+
+  'queues.notification': {
+    desc: 'The config for notification job queue',
+    default: {
+      concurrency: 10,
+    },
+  },
+
+  'queues.nightly': {
+    desc: 'The config for nightly job queue',
+    default: {
+      concurrency: 1,
+    },
   },
 });

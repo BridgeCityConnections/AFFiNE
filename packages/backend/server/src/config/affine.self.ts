@@ -15,7 +15,6 @@
 //    }
 //    ```
 // ====================================================================================
-const env = process.env;
 
 AFFiNE.serverName = AFFiNE.affine.canary
   ? 'AFFiNE Canary Cloud'

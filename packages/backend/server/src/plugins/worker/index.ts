@@ -1,11 +1,10 @@
 import './config';
 
-import { Plugin } from '../registry';
+import { Module } from '@nestjs/common';
+
 import { WorkerController } from './controller';
 
-@Plugin({
-  name: 'worker',
+@Module({
   controllers: [WorkerController],
-  if: config => config.isSelfhosted || config.node.dev || config.node.test,
 })
 export class WorkerModule {}

@@ -4,6 +4,10 @@ declare namespace Express {
   }
 }
 
+declare type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+
 declare type PrimitiveType =
   | string
   | number
@@ -32,6 +36,10 @@ declare type DeepPartial<T> =
             [K in keyof T]?: DeepPartial<T[K]>;
           }
         : T;
+
+declare type DeepReadonly<T> = {
+  readonly [K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K];
+};
 
 declare type AFFiNEModule =
   | import('@nestjs/common').Type

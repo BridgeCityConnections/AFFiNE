@@ -2,9 +2,7 @@ import { Readable } from 'node:stream';
 
 export function ApplyType<T>(): ConstructorOf<T> {
   // @ts-expect-error used to fake the type of config
-  return class Inner implements T {
-    constructor() {}
-  };
+  return class Inner implements T {};
 }
 
 export type PathType<T, Path extends string> =

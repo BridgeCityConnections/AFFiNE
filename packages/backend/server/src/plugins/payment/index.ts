@@ -1,13 +1,13 @@
 import './config';
 
-import { ServerFeature } from '../../core/config';
+import { Module } from '@nestjs/common';
+
 import { FeatureModule } from '../../core/features';
 import { MailModule } from '../../core/mail';
 import { PermissionModule } from '../../core/permission';
 import { QuotaModule } from '../../core/quota';
 import { UserModule } from '../../core/user';
 import { WorkspaceModule } from '../../core/workspaces';
-import { Plugin } from '../registry';
 import { StripeWebhookController } from './controller';
 import { SubscriptionCronJobs } from './cron';
 import { LicenseController } from './license/controller';
@@ -23,11 +23,10 @@ import {
   WorkspaceSubscriptionResolver,
 } from './resolver';
 import { SubscriptionService } from './service';
-import { StripeProvider } from './stripe';
+import { StripeInstanceWrapper, StripeProvider } from './stripe';
 import { StripeWebhook } from './webhook';
 
-@Plugin({
-  name: 'payment',
+@Module({
   imports: [
     FeatureModule,
     QuotaModule,
@@ -37,6 +36,7 @@ import { StripeWebhook } from './webhook';
     MailModule,
   ],
   providers: [
+    StripeInstanceWrapper,
     StripeProvider,
     SubscriptionService,
     SubscriptionResolver,
@@ -50,11 +50,5 @@ import { StripeWebhook } from './webhook';
     QuotaOverride,
   ],
   controllers: [StripeWebhookController, LicenseController],
-  requires: [
-    'plugins.payment.stripe.keys.APIKey',
-    'plugins.payment.stripe.keys.webhookKey',
-  ],
-  contributesTo: ServerFeature.Payment,
-  if: config => config.flavor.graphql,
 })
 export class PaymentModule {}

@@ -7,7 +7,6 @@ import { z } from 'zod';
 import {
   ActionForbidden,
   CantUpdateOnetimePaymentSubscription,
-  Config,
   CustomerPortalCreateFailed,
   InternalServerError,
   InvalidCheckoutParameters,
@@ -80,7 +79,6 @@ export class SubscriptionService implements OnApplicationBootstrap {
   private readonly scheduleManager = new ScheduleManager(this.stripe);
 
   constructor(
-    private readonly config: Config,
     private readonly stripe: Stripe,
     private readonly db: PrismaClient,
     private readonly feature: FeatureService,
@@ -132,8 +130,8 @@ export class SubscriptionService implements OnApplicationBootstrap {
     const { plan, recurring, variant } = params;
 
     if (
-      this.config.deploy &&
-      this.config.affine.canary &&
+      env.namespaces.canary &&
+      env.prod &&
       args.user &&
       !this.feature.isStaff(args.user.email)
     ) {
@@ -686,10 +684,7 @@ export class SubscriptionService implements OnApplicationBootstrap {
 
   private async initStripeProducts() {
     // only init stripe products in dev mode or canary deployment
-    if (
-      (this.config.deploy && !this.config.affine.canary) ||
-      !this.config.node.dev
-    ) {
+    if (!env.namespaces.canary) {
       return;
     }
 
