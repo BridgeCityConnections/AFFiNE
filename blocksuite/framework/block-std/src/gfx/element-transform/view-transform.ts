@@ -1,4 +1,4 @@
-import type { Bound } from '@blocksuite/global/gfx';
+import type { Bound, IPoint } from '@blocksuite/global/gfx';
 
 import type { GfxBlockComponent } from '../../view';
 import type { GfxModel } from '../model/model';
@@ -34,10 +34,39 @@ export type DragMoveContext = DragStartContext & {
 
 export type DragEndContext = DragMoveContext;
 
+export type SelectedContext = {
+  /**
+   * The selected state of the element
+   */
+  selected: boolean;
+
+  /**
+   * Whether is multi-select, usually triggered by shift key
+   */
+  multiSelect: boolean;
+
+  /**
+   * The pointer event that triggers the selection
+   */
+  event: PointerEvent;
+
+  /**
+   * The model position of the event pointer
+   */
+  position: IPoint;
+};
+
 export type GfxViewTransformInterface = {
   onDragStart: (context: DragStartContext) => void;
   onDragMove: (context: DragMoveContext) => void;
   onDragEnd: (context: DragEndContext) => void;
   onRotate: (context: {}) => void;
   onResize: (context: {}) => void;
+
+  /**
+   * When the element is selected by the pointer
+   * @param context
+   * @returns
+   */
+  onSelected: (context: SelectedContext) => void;
 };

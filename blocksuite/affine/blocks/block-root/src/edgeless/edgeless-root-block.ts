@@ -5,6 +5,7 @@ import type {
 import {
   EdgelessLegacySlotIdentifier,
   getBgGridGap,
+  mountShapeTextEditor,
   normalizeWheelDeltaY,
 } from '@blocksuite/affine-block-surface';
 import { isSingleMindMapNode } from '@blocksuite/affine-gfx-mindmap';

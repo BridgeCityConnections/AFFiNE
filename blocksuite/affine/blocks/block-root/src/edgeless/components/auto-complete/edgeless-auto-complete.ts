@@ -4,6 +4,7 @@ import {
   ConnectorPathGenerator,
   EdgelessCRUDIdentifier,
   isNoteBlock,
+  mountShapeTextEditor,
   Overlay,
   OverlayIdentifier,
   type RoughCanvas,

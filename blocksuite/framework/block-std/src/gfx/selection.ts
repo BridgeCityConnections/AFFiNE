@@ -316,7 +316,7 @@ export class GfxSelectionManager extends GfxExtension {
     }
 
     const { blocks = [], elements = [] } = groupBy(selection.elements, id => {
-      return this.std.store.getModelById(id) ? 'blocks' : 'elements';
+      return this.std.store.hasBlock(id) ? 'blocks' : 'elements';
     });
     let instances: (SurfaceSelection | CursorSelection)[] = [];
 
@@ -353,9 +353,9 @@ export class GfxSelectionManager extends GfxExtension {
         : instances
     );
 
-    if (instances.length > 0) {
-      this.stdSelection.setGroup('note', []);
-    }
+    // if (instances.length > 0) {
+    //   this.stdSelection.setGroup('note', []);
+    // }
 
     if (
       selection.elements.length === 1 &&
@@ -368,6 +368,73 @@ export class GfxSelectionManager extends GfxExtension {
         this.selectedElements.length === 0
       ) {
         this._activeGroup = null;
+      }
+    }
+  }
+
+  /**
+   * Toggle the selection state of single element
+   * @param element
+   * @returns
+   */
+  toggle(element: GfxModel | string) {
+    element = typeof element === 'string' ? element : element.id;
+
+    if (this.has(element)) {
+      const selections = this.surfaceSelections.reduce((pre, sel) => {
+        if (sel.elements.includes(element)) {
+          const elements = sel.elements.filter(id => id !== element);
+
+          if (elements.length > 0) {
+            pre.push(
+              this.stdSelection.create(
+                SurfaceSelection,
+                sel.blockId,
+                elements,
+                sel.editing
+              )
+            );
+          }
+        }
+
+        return pre;
+      }, [] as SurfaceSelection[]);
+
+      this.set(selections);
+    } else {
+      const isBlock = this.std.store.hasBlock(element);
+      if (isBlock) {
+        const selection = this.stdSelection.create(
+          SurfaceSelection,
+          element,
+          [element],
+          false
+        );
+
+        this.set([...this.surfaceSelections, selection]);
+      } else {
+        const selection = this.surfaceSelections.find(sel => {
+          if (sel.blockId === this.gfx.surface?.id) {
+            sel.elements.push(element);
+            return true;
+          }
+
+          return false;
+        });
+
+        if (selection) {
+          this.set(this.surfaceSelections);
+        } else {
+          this.set([
+            ...this.surfaceSelections,
+            this.stdSelection.create(
+              SurfaceSelection,
+              this.gfx.surface!.id,
+              [element],
+              false
+            ),
+          ]);
+        }
       }
     }
   }

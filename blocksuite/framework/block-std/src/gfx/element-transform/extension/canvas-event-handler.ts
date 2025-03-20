@@ -2,12 +2,10 @@ import { Bound } from '@blocksuite/global/gfx';
 import last from 'lodash-es/last';
 
 import type { PointerEventState } from '../../../event';
+import type { GfxController } from '../..';
 import type { GfxElementModelView } from '../../view/view';
-import { TransformExtension } from '../transform-manager';
 
-export class CanvasEventHandler extends TransformExtension {
-  static override key = 'canvas-event-handler';
-
+export class CanvasEventHandler {
   private _currentStackedElm: GfxElementModelView[] = [];
 
   private _callInReverseOrder(
@@ -21,19 +19,21 @@ export class CanvasEventHandler extends TransformExtension {
     }
   }
 
-  override click(_evt: PointerEventState): void {
+  constructor(private readonly gfx: GfxController) {}
+
+  click(_evt: PointerEventState): void {
     last(this._currentStackedElm)?.dispatch('click', _evt);
   }
 
-  override dblClick(_evt: PointerEventState): void {
+  dblClick(_evt: PointerEventState): void {
     last(this._currentStackedElm)?.dispatch('dblclick', _evt);
   }
 
-  override pointerDown(_evt: PointerEventState): void {
+  pointerDown(_evt: PointerEventState): void {
     last(this._currentStackedElm)?.dispatch('pointerdown', _evt);
   }
 
-  override pointerMove(_evt: PointerEventState): void {
+  pointerMove(_evt: PointerEventState): void {
     const [x, y] = this.gfx.viewport.toModelCoord(_evt.x, _evt.y);
     const hoveredElmViews = this.gfx.grid
       .search(new Bound(x, y, 1, 1), {
@@ -57,7 +57,7 @@ export class CanvasEventHandler extends TransformExtension {
     this._currentStackedElm = hoveredElmViews;
   }
 
-  override pointerUp(_evt: PointerEventState): void {
+  pointerUp(_evt: PointerEventState): void {
     last(this._currentStackedElm)?.dispatch('pointerup', _evt);
   }
 }
