@@ -5,8 +5,9 @@ import { EmbedEdgelessGithubBlockComponent } from './embed-github-block/embed-ed
 import { EmbedHtmlBlockComponent } from './embed-html-block';
 import { EmbedHtmlFullscreenToolbar } from './embed-html-block/components/fullscreen-toolbar';
 import { EmbedEdgelessHtmlBlockComponent } from './embed-html-block/embed-edgeless-html-block';
-import { EmbedIframeCreateModal } from './embed-iframe-block/components/embed-iframe-create-modal';
+import { EmbedIframeCreatePopup } from './embed-iframe-block/components/embed-iframe-create-popup';
 import { EmbedIframeErrorCard } from './embed-iframe-block/components/embed-iframe-error-card';
+import { EmbedIframeIdleCard } from './embed-iframe-block/components/embed-iframe-idle-card';
 import { EmbedIframeLinkEditPopup } from './embed-iframe-block/components/embed-iframe-link-edit-popup';
 import { EmbedIframeLoadingCard } from './embed-iframe-block/components/embed-iframe-loading-card';
 import { EmbedEdgelessIframeBlockComponent } from './embed-iframe-block/embed-edgeless-iframe-block';
@@ -84,12 +85,10 @@ export function effects() {
     EmbedEdgelessIframeBlockComponent
   );
   customElements.define('affine-embed-iframe-block', EmbedIframeBlockComponent);
-  customElements.define(
-    'affine-embed-iframe-create-modal',
-    EmbedIframeCreateModal
-  );
+  customElements.define('embed-iframe-create-popup', EmbedIframeCreatePopup);
   customElements.define('embed-iframe-loading-card', EmbedIframeLoadingCard);
   customElements.define('embed-iframe-error-card', EmbedIframeErrorCard);
+  customElements.define('embed-iframe-idle-card', EmbedIframeIdleCard);
   customElements.define(
     'embed-iframe-link-edit-popup',
     EmbedIframeLinkEditPopup
@@ -115,9 +114,10 @@ declare global {
     'affine-embed-linked-doc-block': EmbedLinkedDocBlockComponent;
     'affine-embed-edgeless-linked-doc-block': EmbedEdgelessLinkedDocBlockComponent;
     'affine-embed-iframe-block': EmbedIframeBlockComponent;
-    'affine-embed-iframe-create-modal': EmbedIframeCreateModal;
+    'embed-iframe-create-popup': EmbedIframeCreatePopup;
     'embed-iframe-loading-card': EmbedIframeLoadingCard;
     'embed-iframe-error-card': EmbedIframeErrorCard;
+    'embed-iframe-idle-card': EmbedIframeIdleCard;
     'embed-iframe-link-edit-popup': EmbedIframeLinkEditPopup;
   }
 }
