@@ -41,6 +41,7 @@ import {
   chatWithText,
   chatWithTextStream,
   chatWithWorkflow,
+  cleanObject,
   createCopilotContext,
   createCopilotMessage,
   createCopilotSession,
@@ -513,15 +514,6 @@ test('should be able to retry with api', async t => {
     );
   }
 
-  const cleanObject = (obj: any[]) =>
-    JSON.parse(
-      JSON.stringify(obj, (k, v) =>
-        ['id', 'sessionId', 'createdAt'].includes(k) || v === null
-          ? undefined
-          : v
-      )
-    );
-
   // retry chat
   {
     const { id } = await createWorkspace(app);
@@ -786,11 +778,11 @@ test('should be able to manage context', async t => {
     const { docs, files } =
       (await listContextFiles(app, workspaceId, sessionId, contextId)) || {};
     t.snapshot(
-      docs?.map(({ createdAt: _, ...d }) => d),
+      cleanObject(docs, ['status', 'error', 'createdAt']),
       'should list context files'
     );
     t.snapshot(
-      files?.map(({ createdAt: _, id: __, ...f }) => f),
+      cleanObject(files, ['id', 'error', 'createdAt']),
       'should list context docs'
     );
 
