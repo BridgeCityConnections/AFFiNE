@@ -42,10 +42,10 @@ export abstract class DocReader {
     protected readonly blobStorage: WorkspaceBlobStorage
   ) {}
 
-  parseDocContent(bin: Uint8Array) {
+  parseDocContent(bin: Uint8Array, maxSummaryLength = 150) {
     const doc = new YDoc();
     applyUpdate(doc, bin);
-    return parsePageDoc(doc);
+    return parsePageDoc(doc, { maxSummaryLength });
   }
 
   parseWorkspaceContent(bin: Uint8Array) {
@@ -77,6 +77,29 @@ export abstract class DocReader {
     }
 
     const content = await this.getDocContentWithoutCache(workspaceId, docId);
+    if (content) {
+      await this.cache.set(cacheKey, content, {
+        ttl: DOC_CONTENT_CACHE_7_DAYS,
+      });
+    }
+    return content;
+  }
+
+  async getFullDocContent(
+    workspaceId: string,
+    docId: string
+  ): Promise<PageDocContent | null> {
+    const cacheKey = this.cacheKey(workspaceId, docId, true);
+    const cachedResult = await this.cache.get<PageDocContent>(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    const content = await this.getDocContentWithoutCache(
+      workspaceId,
+      docId,
+      true
+    );
     if (content) {
       await this.cache.set(cacheKey, content, {
         ttl: DOC_CONTENT_CACHE_7_DAYS,
@@ -121,17 +144,20 @@ export abstract class DocReader {
 
   async markDocContentCacheStale(workspaceId: string, docId: string) {
     await this.cache.delete(this.cacheKey(workspaceId, docId));
+    await this.cache.delete(this.cacheKey(workspaceId, docId, true));
   }
 
-  private cacheKey(workspaceId: string, docId: string) {
+  private cacheKey(workspaceId: string, docId: string, full = false) {
+    const fullPostfix = full ? ':full' : '';
     return workspaceId === docId
-      ? `workspace:${workspaceId}:content`
-      : `workspace:${workspaceId}:doc:${docId}:content`;
+      ? `workspace:${workspaceId}:content${fullPostfix}`
+      : `workspace:${workspaceId}:doc:${docId}:content${fullPostfix}`;
   }
 
   protected abstract getDocContentWithoutCache(
     workspaceId: string,
-    guid: string
+    guid: string,
+    fullContent?: boolean
   ): Promise<PageDocContent | null>;
 
   protected abstract getWorkspaceContentWithoutCache(
@@ -180,13 +206,14 @@ export class DatabaseDocReader extends DocReader {
 
   protected override async getDocContentWithoutCache(
     workspaceId: string,
-    guid: string
+    guid: string,
+    fullContent?: boolean
   ): Promise<PageDocContent | null> {
     const docRecord = await this.workspace.getDoc(workspaceId, guid);
     if (!docRecord) {
       return null;
     }
-    return this.parseDocContent(docRecord.bin);
+    return this.parseDocContent(docRecord.bin, fullContent ? -1 : 150);
   }
 
   protected override async getWorkspaceContentWithoutCache(
