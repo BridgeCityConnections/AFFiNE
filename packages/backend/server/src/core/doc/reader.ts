@@ -89,23 +89,7 @@ export abstract class DocReader {
     workspaceId: string,
     docId: string
   ): Promise<PageDocContent | null> {
-    const cacheKey = this.cacheKey(workspaceId, docId, true);
-    const cachedResult = await this.cache.get<PageDocContent>(cacheKey);
-    if (cachedResult) {
-      return cachedResult;
-    }
-
-    const content = await this.getDocContentWithoutCache(
-      workspaceId,
-      docId,
-      true
-    );
-    if (content) {
-      await this.cache.set(cacheKey, content, {
-        ttl: DOC_CONTENT_CACHE_7_DAYS,
-      });
-    }
-    return content;
+    return await this.getDocContentWithoutCache(workspaceId, docId, true);
   }
 
   /**
