@@ -44,7 +44,7 @@ export const BUILT_IN_GROUPS: MenuItemGroup<SurfaceRefToolbarContext>[] = [
             return;
           }
 
-          edgelessToBlob(ctx.host, {
+          edgelessToBlob(editor, {
             surfaceRefBlock: ctx.blockComponent,
             surfaceRenderer,
             edgelessElement: referencedModel,
@@ -83,7 +83,7 @@ export const BUILT_IN_GROUPS: MenuItemGroup<SurfaceRefToolbarContext>[] = [
             return;
           }
 
-          edgelessToBlob(ctx.host, {
+          edgelessToBlob(editor, {
             surfaceRefBlock: ctx.blockComponent,
             surfaceRenderer,
             edgelessElement: referencedModel,
