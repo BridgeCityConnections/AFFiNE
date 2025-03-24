@@ -1,6 +1,7 @@
-import { mountTextElementEditor } from '@blocksuite/affine-gfx-text';
 import type { TextElementModel } from '@blocksuite/affine-model';
 import { GfxElementModelView } from '@blocksuite/block-std/gfx';
+
+import { mountTextElementEditor } from './edgeless-text-editor';
 
 export class TextElementView extends GfxElementModelView<TextElementModel> {
   static override type: string = 'text';

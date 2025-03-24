@@ -1,10 +1,6 @@
 import { insertLinkByQuickSearchCommand } from '@blocksuite/affine-block-bookmark';
 import { EdgelessTextBlockComponent } from '@blocksuite/affine-block-edgeless-text';
-import {
-  isNoteBlock,
-  mountConnectorLabelEditor,
-  mountShapeTextEditor,
-} from '@blocksuite/affine-block-surface';
+import { isNoteBlock } from '@blocksuite/affine-block-surface';
 import { toast } from '@blocksuite/affine-components/toast';
 import { mountConnectorLabelEditor } from '@blocksuite/affine-gfx-connector';
 import {

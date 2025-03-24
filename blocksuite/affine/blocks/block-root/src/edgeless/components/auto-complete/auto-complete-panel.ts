@@ -2,7 +2,6 @@ import { insertEdgelessTextCommand } from '@blocksuite/affine-block-edgeless-tex
 import {
   CanvasElementType,
   EdgelessCRUDIdentifier,
-  mountShapeTextEditor,
 } from '@blocksuite/affine-block-surface';
 import { FontFamilyIcon } from '@blocksuite/affine-components/icons';
 import {

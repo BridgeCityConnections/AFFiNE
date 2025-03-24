@@ -1,19 +1,24 @@
 import {
   EdgelessCRUDIdentifier,
-  TextUtils
+  TextUtils,
 } from '@blocksuite/affine-block-surface';
-import type { ShapeElementModel } from '@blocksuite/affine-model';
-import { MindmapElementModel, TextResizing } from '@blocksuite/affine-model';
+import {
+  MindmapElementModel,
+  ShapeElementModel,
+  TextResizing,
+} from '@blocksuite/affine-model';
 import type { RichText } from '@blocksuite/affine-rich-text';
 import { ThemeProvider } from '@blocksuite/affine-shared/services';
 import { getSelectedRect } from '@blocksuite/affine-shared/utils';
 import {
+  type BlockComponent,
   type BlockStdScope,
   ShadowlessElement,
   stdContext,
 } from '@blocksuite/block-std';
 import { GfxControllerIdentifier } from '@blocksuite/block-std/gfx';
 import { RANGE_SYNC_EXCLUDE_ATTR } from '@blocksuite/block-std/inline';
+import { BlockSuiteError, ErrorCode } from '@blocksuite/global/exceptions';
 import { Bound, toRadian, Vec } from '@blocksuite/global/gfx';
 import { WithDisposable } from '@blocksuite/global/lit';
 import { consume } from '@lit/context';
@@ -21,6 +26,48 @@ import { html, nothing } from 'lit';
 import { property, query } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import * as Y from 'yjs';
+
+export function mountShapeTextEditor(
+  shapeElement: ShapeElementModel,
+  edgeless: BlockComponent
+) {
+  const mountElm = edgeless.querySelector('.edgeless-mount-point');
+  if (!mountElm) {
+    throw new BlockSuiteError(
+      ErrorCode.ValueNotExists,
+      "edgeless block's mount point does not exist"
+    );
+  }
+
+  const gfx = edgeless.std.get(GfxControllerIdentifier);
+  const crud = edgeless.std.get(EdgelessCRUDIdentifier);
+
+  const updatedElement = crud.getElementById(shapeElement.id);
+
+  if (!(updatedElement instanceof ShapeElementModel)) {
+    console.error('Cannot mount text editor on a non-shape element');
+    return;
+  }
+
+  // @ts-expect-error FIXME: resolve after gfx tool refactor
+  gfx.tool.setTool('default');
+  gfx.selection.set({
+    elements: [shapeElement.id],
+    editing: true,
+  });
+
+  if (!shapeElement.text) {
+    const text = new Y.Text();
+    edgeless.std
+      .get(EdgelessCRUDIdentifier)
+      .updateElement(shapeElement.id, { text });
+  }
+
+  const shapeEditor = new EdgelessShapeTextEditor();
+  shapeEditor.element = updatedElement;
+
+  mountElm.append(shapeEditor);
+}
 
 export class EdgelessShapeTextEditor extends WithDisposable(ShadowlessElement) {
   private _keeping = false;

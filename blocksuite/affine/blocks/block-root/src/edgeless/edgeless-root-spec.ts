@@ -1,5 +1,7 @@
 import { ConnectorElementView } from '@blocksuite/affine-gfx-connector';
+import { GroupElementView } from '@blocksuite/affine-gfx-group';
 import { MindMapView } from '@blocksuite/affine-gfx-mindmap';
+import { TextElementView } from '@blocksuite/affine-gfx-text';
 import { ViewportElementExtension } from '@blocksuite/affine-shared/services';
 import { autoConnectWidget } from '@blocksuite/affine-widget-edgeless-auto-connect';
 import { edgelessToolbarWidget } from '@blocksuite/affine-widget-edgeless-toolbar';
@@ -56,13 +58,19 @@ class EdgelessLocker extends LifeCycleWatcher {
   }
 }
 
+export const gfxElementViews = [
+  ConnectorElementView,
+  MindMapView,
+  GroupElementView,
+  TextElementView,
+];
+
 const EdgelessCommonExtension: ExtensionType[] = [
   CommonSpecs,
   ToolController,
   EdgelessRootService,
   ViewportElementExtension('.affine-edgeless-viewport'),
-  MindMapView,
-  ConnectorElementView,
+  ...gfxElementViews,
   ...quickTools,
   ...seniorTools,
 ].flat();

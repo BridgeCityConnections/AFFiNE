@@ -6,18 +6,47 @@ import {
 import type { GroupElementModel } from '@blocksuite/affine-model';
 import type { RichText } from '@blocksuite/affine-rich-text';
 import {
+  type BlockComponent,
   type BlockStdScope,
   ShadowlessElement,
   stdContext,
 } from '@blocksuite/block-std';
 import { GfxControllerIdentifier } from '@blocksuite/block-std/gfx';
 import { RANGE_SYNC_EXCLUDE_ATTR } from '@blocksuite/block-std/inline';
+import { BlockSuiteError, ErrorCode } from '@blocksuite/global/exceptions';
 import { Bound } from '@blocksuite/global/gfx';
 import { WithDisposable } from '@blocksuite/global/lit';
 import { consume } from '@lit/context';
 import { html, nothing } from 'lit';
 import { property, query } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
+
+export function mountGroupTitleEditor(
+  group: GroupElementModel,
+  edgeless: BlockComponent
+) {
+  const mountElm = edgeless.querySelector('.edgeless-mount-point');
+  if (!mountElm) {
+    throw new BlockSuiteError(
+      ErrorCode.ValueNotExists,
+      "edgeless block's mount point does not exist"
+    );
+  }
+
+  const gfx = edgeless.std.get(GfxControllerIdentifier);
+
+  // @ts-expect-error FIXME: resolve after gfx tool refactor
+  gfx.tool.setTool('default');
+  gfx.selection.set({
+    elements: [group.id],
+    editing: true,
+  });
+
+  const groupEditor = new EdgelessGroupTitleEditor();
+  groupEditor.group = group;
+
+  mountElm.append(groupEditor);
+}
 
 export class EdgelessGroupTitleEditor extends WithDisposable(
   ShadowlessElement

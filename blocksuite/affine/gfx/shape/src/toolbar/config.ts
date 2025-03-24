@@ -1,6 +1,5 @@
 import {
   EdgelessCRUDIdentifier,
-  mountShapeTextEditor,
   normalizeShapeBound,
 } from '@blocksuite/affine-block-surface';
 import {
@@ -48,6 +47,7 @@ import { html } from 'lit';
 import isEqual from 'lodash-es/isEqual';
 
 import type { ShapeToolOption } from '../shape-tool';
+import { mountShapeTextEditor } from '../text/edgeless-shape-text-editor';
 import { ShapeComponentConfig } from './shape-menu-config';
 
 export const shapeToolbarConfig = {

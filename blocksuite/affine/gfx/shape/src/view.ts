@@ -1,7 +1,7 @@
 import type { ShapeElementModel } from '@blocksuite/affine-model';
 import { GfxElementModelView } from '@blocksuite/block-std/gfx';
 
-import { mountShapeTextEditor } from '../components/text-editor/mount';
+import { mountShapeTextEditor } from './text/edgeless-shape-text-editor';
 
 export class ShapeElementView extends GfxElementModelView<ShapeElementModel> {
   static override type: string = 'shape';

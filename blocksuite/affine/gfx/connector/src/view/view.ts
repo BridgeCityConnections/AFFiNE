@@ -6,7 +6,7 @@ import {
   GfxElementModelView,
 } from '@blocksuite/block-std/gfx';
 
-import { mountConnectorLabelEditor } from '../components/text-editor/mount';
+import { mountConnectorLabelEditor } from '../text/edgeless-connector-label-editor';
 
 export class ConnectorElementView extends GfxElementModelView<ConnectorElementModel> {
   static override type = 'connector';

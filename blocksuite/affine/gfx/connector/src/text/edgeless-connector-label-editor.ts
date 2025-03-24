@@ -1,19 +1,21 @@
 import {
   EdgelessCRUDIdentifier,
-  TextUtils
+  TextUtils,
 } from '@blocksuite/affine-block-surface';
 import type { ConnectorElementModel } from '@blocksuite/affine-model';
 import type { RichText } from '@blocksuite/affine-rich-text';
 import { ThemeProvider } from '@blocksuite/affine-shared/services';
 import { almostEqual } from '@blocksuite/affine-shared/utils';
 import {
+  type BlockComponent,
   type BlockStdScope,
   ShadowlessElement,
   stdContext,
 } from '@blocksuite/block-std';
 import { GfxControllerIdentifier } from '@blocksuite/block-std/gfx';
 import { RANGE_SYNC_EXCLUDE_ATTR } from '@blocksuite/block-std/inline';
-import { Bound, Vec } from '@blocksuite/global/gfx';
+import { BlockSuiteError, ErrorCode } from '@blocksuite/global/exceptions';
+import { Bound, type IVec, Vec } from '@blocksuite/global/gfx';
 import { WithDisposable } from '@blocksuite/global/lit';
 import { consume } from '@lit/context';
 import { css, html, nothing } from 'lit';
@@ -24,6 +26,60 @@ import * as Y from 'yjs';
 const HORIZONTAL_PADDING = 2;
 const VERTICAL_PADDING = 2;
 const BORDER_WIDTH = 1;
+
+export function mountConnectorLabelEditor(
+  connector: ConnectorElementModel,
+  edgeless: BlockComponent,
+  point?: IVec
+) {
+  const mountElm = edgeless.querySelector('.edgeless-mount-point');
+  if (!mountElm) {
+    throw new BlockSuiteError(
+      ErrorCode.ValueNotExists,
+      "edgeless block's mount point does not exist"
+    );
+  }
+
+  const gfx = edgeless.std.get(GfxControllerIdentifier);
+
+  // @ts-expect-error default tool should be migrated to std
+  gfx.tool.setTool('default');
+  gfx.selection.set({
+    elements: [connector.id],
+    editing: true,
+  });
+
+  if (!connector.text) {
+    const text = new Y.Text();
+    const labelOffset = connector.labelOffset;
+    let labelXYWH = connector.labelXYWH ?? [0, 0, 16, 16];
+
+    if (point) {
+      const center = connector.getNearestPoint(point);
+      const distance = connector.getOffsetDistanceByPoint(center as IVec);
+      const bounds = Bound.fromXYWH(labelXYWH);
+      bounds.center = center;
+      labelOffset.distance = distance;
+      labelXYWH = bounds.toXYWH();
+    }
+
+    edgeless.std.get(EdgelessCRUDIdentifier).updateElement(connector.id, {
+      text,
+      labelXYWH,
+      labelOffset: { ...labelOffset },
+    });
+  }
+
+  const editor = new EdgelessConnectorLabelEditor();
+  editor.connector = connector;
+
+  mountElm.append(editor);
+  editor.updateComplete
+    .then(() => {
+      editor.inlineEditor?.focusEnd();
+    })
+    .catch(console.error);
+}
 
 export class EdgelessConnectorLabelEditor extends WithDisposable(
   ShadowlessElement
@@ -263,7 +319,11 @@ export class EdgelessConnectorLabelEditor extends WithDisposable(
       labelConstraints: { hasMaxWidth, maxWidth },
     } = connector;
 
-    const lineHeight = TextUtils.getLineHeight(fontFamily, fontSize, fontWeight);
+    const lineHeight = TextUtils.getLineHeight(
+      fontFamily,
+      fontSize,
+      fontWeight
+    );
     const { translateX, translateY, zoom } = this.gfx.viewport;
     const [x, y] = Vec.mul(connector.getPointByOffsetDistance(distance), zoom);
     const transformOperation = [
