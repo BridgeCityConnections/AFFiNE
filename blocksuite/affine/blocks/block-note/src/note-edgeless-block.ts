@@ -308,7 +308,6 @@ export class EdgelessNoteBlockComponent extends toGfxBlockComponent(
     const alreadySelected = this.gfx.selection.has(this.model.id);
 
     if (!multiSelect && selected && (alreadySelected || editing)) {
-      console.log(this.model.isLocked(), editing);
       if (this.model.isLocked()) return;
 
       this.gfx.selection.set({
