@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { ProjectRoot } from '@affine-tools/utils/path';
+import { PrismaClient } from '@prisma/client';
 import type { TestFn } from 'ava';
 import ava from 'ava';
 import Sinon from 'sinon';
@@ -8,6 +9,7 @@ import Sinon from 'sinon';
 import { JobQueue } from '../base';
 import { ConfigModule } from '../base/config';
 import { AuthService } from '../core/auth';
+import { DocReader } from '../core/doc';
 import { WorkspaceModule } from '../core/workspaces';
 import { CopilotModule } from '../plugins/copilot';
 import {
@@ -48,8 +50,9 @@ import {
   forkCopilotSession,
   getHistories,
   listContext,
-  listContextFiles,
+  listContextDocAndFiles,
   matchFiles,
+  matchWorkspaceDocs,
   MockCopilotTestProvider,
   sse2array,
   textToEventStream,
@@ -60,6 +63,7 @@ import {
 const test = ava as TestFn<{
   auth: AuthService;
   app: TestingApp;
+  db: PrismaClient;
   context: CopilotContextService;
   jobs: CopilotContextDocJob;
   prompt: PromptService;
@@ -93,16 +97,26 @@ test.before(async t => {
     tapModule: m => {
       // use real JobQueue for testing
       m.overrideProvider(JobQueue).useClass(JobQueue);
+      m.overrideProvider(DocReader).useValue({
+        getDocContent() {
+          return {
+            title: '1',
+            summary: '1',
+          };
+        },
+      });
     },
   });
 
   const auth = app.get(AuthService);
+  const db = app.get(PrismaClient);
   const context = app.get(CopilotContextService);
   const prompt = app.get(PromptService);
   const storage = app.get(CopilotStorage);
   const jobs = app.get(CopilotContextDocJob);
 
   t.context.app = app;
+  t.context.db = db;
   t.context.auth = auth;
   t.context.context = context;
   t.context.prompt = prompt;
@@ -763,6 +777,7 @@ test('should be able to manage context', async t => {
     ProjectRoot.join('packages/common/native/fixtures/sample.pdf').toFileUrl()
   );
 
+  // match files
   {
     const contextId = await createCopilotContext(app, workspaceId, sessionId);
 
@@ -773,14 +788,10 @@ test('should be able to manage context', async t => {
       'sample.pdf',
       buffer
     );
-    await addContextDoc(app, contextId, 'docId1');
 
-    const { docs, files } =
-      (await listContextFiles(app, workspaceId, sessionId, contextId)) || {};
-    t.snapshot(
-      cleanObject(docs, ['status', 'error', 'createdAt']),
-      'should list context files'
-    );
+    const { files } =
+      (await listContextDocAndFiles(app, workspaceId, sessionId, contextId)) ||
+      {};
     t.snapshot(
       cleanObject(files, ['id', 'error', 'createdAt']),
       'should list context docs'
@@ -789,18 +800,86 @@ test('should be able to manage context', async t => {
     // wait for processing
     {
       let { files } =
-        (await listContextFiles(app, workspaceId, sessionId, contextId)) || {};
+        (await listContextDocAndFiles(
+          app,
+          workspaceId,
+          sessionId,
+          contextId
+        )) || {};
 
       while (files?.[0].status !== 'finished') {
         await new Promise(resolve => setTimeout(resolve, 1000));
         ({ files } =
-          (await listContextFiles(app, workspaceId, sessionId, contextId)) ||
-          {});
+          (await listContextDocAndFiles(
+            app,
+            workspaceId,
+            sessionId,
+            contextId
+          )) || {});
       }
     }
 
     const result = (await matchFiles(app, contextId, 'test', 1))!;
     t.is(result.length, 1, 'should match context');
     t.is(result[0].fileId, fileId, 'should match file id');
+  }
+
+  // match docs
+  {
+    const sessionId = await createCopilotSession(
+      app,
+      workspaceId,
+      randomUUID(),
+      promptName
+    );
+    const contextId = await createCopilotContext(app, workspaceId, sessionId);
+
+    const docId = 'docId1';
+    await t.context.db.snapshot.create({
+      data: {
+        workspaceId: workspaceId,
+        id: docId,
+        blob: Buffer.from([1, 1]),
+        state: Buffer.from([1, 1]),
+        updatedAt: new Date(),
+        createdAt: new Date(),
+      },
+    });
+
+    await addContextDoc(app, contextId, docId);
+
+    const { docs } =
+      (await listContextDocAndFiles(app, workspaceId, sessionId, contextId)) ||
+      {};
+    t.snapshot(
+      cleanObject(docs, ['error', 'createdAt']),
+      'should list context files'
+    );
+
+    // wait for processing
+    {
+      let { docs } =
+        (await listContextDocAndFiles(
+          app,
+          workspaceId,
+          sessionId,
+          contextId
+        )) || {};
+
+      while (docs?.[0].status !== 'finished') {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        ({ docs } =
+          (await listContextDocAndFiles(
+            app,
+            workspaceId,
+            sessionId,
+            contextId
+          )) || {});
+      }
+    }
+
+    const result = (await matchWorkspaceDocs(app, contextId, 'test', 1))!;
+    t.is(result.length, 1, 'should match context');
+    t.is(result[0].docId, docId, 'should match doc id');
   }
 });

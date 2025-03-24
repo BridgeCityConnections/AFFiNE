@@ -278,7 +278,7 @@ export async function matchWorkspaceDocs(
   limit: number
 ): Promise<
   | {
-      fileId: string;
+      docId: string;
       chunk: number;
       content: string;
       distance: number | null;
@@ -287,7 +287,7 @@ export async function matchWorkspaceDocs(
 > {
   const res = await app.gql(
     `
-      query matchWorkspaceDocs($contextId: String!, $content: String!, $limit: SafeInt) {
+      query matchWorkspaceDocs($contextId: String!, $content: String!, $limit: SafeInt, $threshold: Float) {
         currentUser {
           copilot {
             contexts(contextId: $contextId) {
@@ -305,7 +305,7 @@ export async function matchWorkspaceDocs(
     { contextId, content, limit, threshold: 1 }
   );
 
-  return res.currentUser?.copilot?.contexts?.[0]?.matchFiles;
+  return res.currentUser?.copilot?.contexts?.[0]?.matchWorkspaceDocs;
 }
 
 export async function listContext(
@@ -423,7 +423,7 @@ export async function removeContextDoc(
   return res.removeContextDoc;
 }
 
-export async function listContextFiles(
+export async function listContextDocAndFiles(
   app: TestingApp,
   workspaceId: string,
   sessionId: string,
@@ -432,6 +432,8 @@ export async function listContextFiles(
   | {
       docs: {
         id: string;
+        status: string;
+        error: string | null;
         createdAt: number;
       }[];
       files: {
@@ -440,6 +442,7 @@ export async function listContextFiles(
         blobId: string;
         chunkSize: number;
         status: string;
+        error: string | null;
         createdAt: number;
       }[];
     }
@@ -452,6 +455,8 @@ export async function listContextFiles(
               contexts(sessionId: "${sessionId}", contextId: "${contextId}") {
                 docs {
                   id
+                  status
+                  error
                   createdAt
                 }
                 files {
@@ -460,6 +465,7 @@ export async function listContextFiles(
                   blobId
                   chunkSize
                   status
+                  error
                   createdAt
                 }
               }
