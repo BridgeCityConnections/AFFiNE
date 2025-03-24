@@ -145,6 +145,17 @@ type AttachmentEvents =
 type TemplateEvents = 'openTemplateListMenu';
 // END SECTION
 
+// SECTION: Integration
+type IntegrationEvents =
+  | 'connectIntegration'
+  | 'disconnectIntegration'
+  | 'modifyIntegrationSettings'
+  | 'startIntegrationImport'
+  | 'selectIntegrationImport'
+  | 'confirmIntegrationImport'
+  | 'abortIntegrationImport';
+// END SECTION
+
 type UserEvents =
   | GeneralEvents
   | AppEvents
@@ -162,7 +173,8 @@ type UserEvents =
   | PaymentEvents
   | DNDEvents
   | AttachmentEvents
-  | TemplateEvents;
+  | TemplateEvents
+  | IntegrationEvents;
 interface PageDivision {
   [page: string]: {
     [segment: string]: {
@@ -229,6 +241,15 @@ const PageEvents = {
       ],
       billing: ['viewPlans', 'bookDemo'],
       about: ['checkUpdates', 'downloadUpdate', 'changeAppSetting'],
+      integrationList: [
+        'connectIntegration',
+        'disconnectIntegration',
+        'modifyIntegrationSettings',
+        'startIntegrationImport',
+        'selectIntegrationImport',
+        'confirmIntegrationImport',
+        'abortIntegrationImport',
+      ],
     },
     cmdk: {
       recent: ['recentDocs'],
@@ -478,6 +499,10 @@ type ImportArgs = {
     docCount: number;
   };
 };
+type IntegrationArgs<T extends Record<string, any>> = {
+  type: string;
+  control: 'Readwise Card' | 'Readwise settings' | 'Readwise import list';
+} & T;
 
 export type EventArgs = {
   createWorkspace: { flavour: string };
@@ -543,6 +568,28 @@ export type EventArgs = {
   inviteUserDocRole: {
     control: 'member list';
   };
+  connectIntegration: IntegrationArgs<{ result: 'success' | 'failed' }>;
+  disconnectIntegration: IntegrationArgs<{ method: 'keep' | 'delete' }>;
+  modifyIntegrationSettings: IntegrationArgs<{
+    item: string;
+    option: any;
+    method: any;
+  }>;
+  startIntegrationImport: IntegrationArgs<{
+    method: 'new' | 'withtimestamp' | 'cleartimestamp';
+  }>;
+  selectIntegrationImport: IntegrationArgs<{
+    method: 'single' | 'all';
+    option: 'on' | 'off';
+  }>;
+  confirmIntegrationImport: IntegrationArgs<{
+    method: 'new' | 'withtimestamp';
+  }>;
+  abortIntegrationImport: IntegrationArgs<{
+    time: number;
+    done: number;
+    total: number;
+  }>;
 };
 
 // for type checking
