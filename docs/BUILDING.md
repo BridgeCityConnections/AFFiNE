@@ -1,5 +1,6 @@
 # Building AFFiNE Web
 
+
 > **Warning**:
 >
 > This document is not guaranteed to be up-to-date.
