@@ -1,6 +1,7 @@
 import { ConnectorElementView } from '@blocksuite/affine-gfx-connector';
 import { GroupElementView } from '@blocksuite/affine-gfx-group';
 import { MindMapView } from '@blocksuite/affine-gfx-mindmap';
+import { ShapeElementView } from '@blocksuite/affine-gfx-shape';
 import { TextElementView } from '@blocksuite/affine-gfx-text';
 import { ViewportElementExtension } from '@blocksuite/affine-shared/services';
 import { autoConnectWidget } from '@blocksuite/affine-widget-edgeless-auto-connect';
@@ -63,6 +64,7 @@ export const gfxElementViews = [
   MindMapView,
   GroupElementView,
   TextElementView,
+  ShapeElementView,
 ];
 
 const EdgelessCommonExtension: ExtensionType[] = [

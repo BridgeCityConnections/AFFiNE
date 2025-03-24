@@ -14,6 +14,7 @@ export class ShapeElementView extends GfxElementModelView<ShapeElementModel> {
 
   private _initDblClickToEdit(): void {
     const edgeless = this.std.view.getBlock(this.std.store.root!.id);
+    console.log('shape view created', edgeless);
 
     this.on('dblclick', () => {
       if (edgeless) {

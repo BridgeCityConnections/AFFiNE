@@ -14,7 +14,9 @@ export class DblClickAddEdgelessText extends TransformExtension {
     const textFlag = this.std.store
       .get(FeatureFlagService)
       .getFlag('enable_edgeless_text');
-    const picked = this.gfx.getElementByPoint(e.x, e.y);
+    const picked = this.gfx.getElementByPoint(
+      ...this.gfx.viewport.toModelCoord(e.x, e.y)
+    );
 
     if (picked) {
       return;
