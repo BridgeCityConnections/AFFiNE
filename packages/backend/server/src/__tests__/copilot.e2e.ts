@@ -48,7 +48,7 @@ import {
   getHistories,
   listContext,
   listContextFiles,
-  matchContext,
+  matchFiles,
   MockCopilotTestProvider,
   sse2array,
   textToEventStream,
@@ -807,7 +807,7 @@ test('should be able to manage context', async t => {
       }
     }
 
-    const result = (await matchContext(app, contextId, 'test', 1))!;
+    const result = (await matchFiles(app, contextId, 'test', 1))!;
     t.is(result.length, 1, 'should match context');
     t.is(result[0].fileId, fileId, 'should match file id');
   }
