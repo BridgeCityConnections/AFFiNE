@@ -120,6 +120,32 @@ export class CopilotTranscriptionService {
     return ret;
   }
 
+  async queryTranscriptionJobByBlobId(
+    userId: string,
+    workspaceId: string,
+    blobId: string
+  ) {
+    const job = await this.models.copilotJob.getWithUserByBlobId(
+      userId,
+      workspaceId,
+      blobId,
+      AiJobType.transcription
+    );
+
+    if (!job) {
+      return null;
+    }
+
+    const ret: TranscriptionJob = { id: job.id, status: job.status };
+
+    const payload = TranscriptPayloadSchema.safeParse(job.payload);
+    if (payload.success) {
+      ret.transcription = payload.data;
+    }
+
+    return ret;
+  }
+
   private async getProvider(model: string): Promise<CopilotTextProvider> {
     let provider = await this.provider.getProviderByCapability(
       CopilotCapability.TextToText,

@@ -85,13 +85,37 @@ export class CopilotJobModel extends BaseModel {
         id: jobId,
         workspaceId,
         type,
-        OR: [
-          {
-            createdBy: userId,
-            status: { in: [AiJobStatus.finished, AiJobStatus.claimed] },
-          },
-          { createdBy: { not: userId }, status: AiJobStatus.claimed },
-        ],
+        createdBy: userId,
+      },
+    });
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: row.id,
+      workspaceId: row.workspaceId,
+      blobId: row.blobId,
+      createdBy: row.createdBy || undefined,
+      type: row.type,
+      status: row.status,
+      payload: row.payload,
+    };
+  }
+
+  async getWithUserByBlobId(
+    userId: string,
+    workspaceId: string,
+    blobId: string,
+    type?: AiJobType
+  ) {
+    const row = await this.db.aiJobs.findFirst({
+      where: {
+        blobId,
+        workspaceId,
+        type,
+        createdBy: userId,
       },
     });
 

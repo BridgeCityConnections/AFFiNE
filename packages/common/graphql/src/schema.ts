@@ -123,7 +123,8 @@ export interface ContextWorkspaceEmbeddingStatus {
 
 export interface Copilot {
   __typename?: 'Copilot';
-  audioTranscription: Array<TranscriptionResultType>;
+  audioTranscription: Maybe<TranscriptionResultType>;
+  audioTranscriptionByBlobId: Maybe<TranscriptionResultType>;
   /** Get the context list of a session */
   contexts: Array<CopilotContext>;
   histories: Array<CopilotHistories>;
@@ -141,6 +142,10 @@ export interface Copilot {
 
 export interface CopilotAudioTranscriptionArgs {
   jobId?: InputMaybe<Scalars['String']['input']>;
+}
+
+export interface CopilotAudioTranscriptionByBlobIdArgs {
+  blobId: Scalars['String']['input'];
 }
 
 export interface CopilotContextsArgs {
@@ -2796,6 +2801,34 @@ export type SubmitAudioTranscriptionMutation = {
   } | null;
 };
 
+export type GetAudioTranscriptionByBlobIdQueryVariables = Exact<{
+  workspaceId: Scalars['String']['input'];
+  blobId: Scalars['String']['input'];
+}>;
+
+export type GetAudioTranscriptionByBlobIdQuery = {
+  __typename?: 'Query';
+  currentUser: {
+    __typename?: 'UserType';
+    copilot: {
+      __typename?: 'Copilot';
+      audioTranscriptionByBlobId: {
+        __typename?: 'TranscriptionResultType';
+        id: string;
+        status: AiJobStatus;
+        summary: string | null;
+        transcription: Array<{
+          __typename?: 'TranscriptionItemType';
+          speaker: string;
+          start: string;
+          end: string;
+          transcription: string;
+        }> | null;
+      } | null;
+    };
+  } | null;
+};
+
 export type ClaimAudioTranscriptionMutationVariables = Exact<{
   jobId: Scalars['String']['input'];
 }>;
@@ -2828,7 +2861,7 @@ export type GetAudioTranscriptionQuery = {
     __typename?: 'UserType';
     copilot: {
       __typename?: 'Copilot';
-      audioTranscription: Array<{
+      audioTranscription: {
         __typename?: 'TranscriptionResultType';
         id: string;
         status: AiJobStatus;
@@ -2840,7 +2873,7 @@ export type GetAudioTranscriptionQuery = {
           end: string;
           transcription: string;
         }> | null;
-      }>;
+      } | null;
     };
   } | null;
 };
@@ -4346,6 +4379,11 @@ export type Queries =
       name: 'getCopilotHistoriesQuery';
       variables: GetCopilotHistoriesQueryVariables;
       response: GetCopilotHistoriesQuery;
+    }
+  | {
+      name: 'getAudioTranscriptionByBlobIdQuery';
+      variables: GetAudioTranscriptionByBlobIdQueryVariables;
+      response: GetAudioTranscriptionByBlobIdQuery;
     }
   | {
       name: 'getAudioTranscriptionQuery';

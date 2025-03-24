@@ -392,6 +392,28 @@ export const submitAudioTranscriptionMutation = {
   file: true,
 };
 
+export const getAudioTranscriptionByBlobIdQuery = {
+  id: 'getAudioTranscriptionByBlobIdQuery' as const,
+  op: 'getAudioTranscriptionByBlobId',
+  query: `query getAudioTranscriptionByBlobId($workspaceId: String!, $blobId: String!) {
+  currentUser {
+    copilot(workspaceId: $workspaceId) {
+      audioTranscriptionByBlobId(blobId: $blobId) {
+        id
+        status
+        transcription {
+          speaker
+          start
+          end
+          transcription
+        }
+        summary
+      }
+    }
+  }
+}`,
+};
+
 export const claimAudioTranscriptionMutation = {
   id: 'claimAudioTranscriptionMutation' as const,
   op: 'claimAudioTranscription',

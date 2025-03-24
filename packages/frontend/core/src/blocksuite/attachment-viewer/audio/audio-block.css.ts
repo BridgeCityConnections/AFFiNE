@@ -23,3 +23,7 @@ export const notesButtonIcon = style({
   width: '1em',
   height: '1em',
 });
+
+export const error = style({
+  color: cssVarV2('aI/errorText'),
+});

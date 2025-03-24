@@ -162,7 +162,7 @@ export class AudioMedia extends Entity<AudioSource> {
 
     const startTime = performance.now();
     // calculating audio stats is expensive. Maybe persist the result in cache?
-    const stats = await this.calcuateStatsFromBuffer(blob);
+    const stats = await this.calculateStatsFromBuffer(blob);
     logger.debug(
       `Calculate audio stats time: ${performance.now() - startTime}ms`
     );
@@ -397,7 +397,7 @@ export class AudioMedia extends Entity<AudioSource> {
     return this.playbackState$.getValue();
   }
 
-  private async calcuateStatsFromBuffer(buffer: Blob) {
+  private async calculateStatsFromBuffer(buffer: Blob) {
     const audioContext = new AudioContext();
     const audioBuffer = await audioContext.decodeAudioData(
       await buffer.arrayBuffer()

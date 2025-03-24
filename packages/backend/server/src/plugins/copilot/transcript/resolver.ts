@@ -110,7 +110,9 @@ export class CopilotTranscriptionResolver {
     return this.handleJobResult(job);
   }
 
-  @ResolveField(() => [TranscriptionResultType], {})
+  @ResolveField(() => TranscriptionResultType, {
+    nullable: true,
+  })
   async audioTranscription(
     @Parent() copilot: CopilotType,
     @CurrentUser() user: CurrentUser,
@@ -128,6 +130,27 @@ export class CopilotTranscriptionResolver {
       user.id,
       copilot.workspaceId,
       jobId
+    );
+    return this.handleJobResult(job);
+  }
+
+  @ResolveField(() => TranscriptionResultType, { nullable: true })
+  async audioTranscriptionByBlobId(
+    @Parent() copilot: CopilotType,
+    @CurrentUser() user: CurrentUser,
+    @Args('blobId') blobId: string
+  ): Promise<TranscriptionResultType | null> {
+    if (!copilot.workspaceId) return null;
+    await this.ac
+      .user(user.id)
+      .workspace(copilot.workspaceId)
+      .allowLocal()
+      .assert('Workspace.Copilot');
+
+    const job = await this.service.queryTranscriptionJobByBlobId(
+      user.id,
+      copilot.workspaceId,
+      blobId
     );
     return this.handleJobResult(job);
   }

@@ -4,6 +4,7 @@ import { useSeekTime } from '@affine/core/components/audio-player/use-seek-time'
 import { useEnableAI } from '@affine/core/components/hooks/affine/use-enable-ai';
 import type { AudioAttachmentBlock } from '@affine/core/modules/media/entities/audio-attachment-block';
 import { useAttachmentMediaBlock } from '@affine/core/modules/media/views/use-attachment-media';
+import { AiJobStatus } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import { TranscriptWithAiIcon } from '@blocksuite/icons/rc';
 import { useLiveData } from '@toeverything/infra';
@@ -19,8 +20,23 @@ const AttachmentAudioPlayer = ({ block }: { block: AudioAttachmentBlock }) => {
   const stats = useLiveData(audioMedia.stats$);
   const loading = useLiveData(audioMedia.loading$);
   const expanded = useLiveData(block.expanded$);
-  const transcribing = useLiveData(block.transcribing$);
-  const transcribed = useLiveData(block.transcribed$);
+  const transcribing = useLiveData(
+    block.transcriptionJob.status$.map(
+      status =>
+        status.status === AiJobStatus.pending ||
+        status.status === AiJobStatus.running ||
+        status.status === AiJobStatus.finished
+    )
+  );
+  const error = useLiveData(
+    block.transcriptionJob.status$.map(status => {
+      if (status.status === AiJobStatus.failed) {
+        return status.error;
+      }
+      return null;
+    })
+  );
+  const transcribed = useLiveData(block.hasTranscription$);
   const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
   }, []);
@@ -78,10 +94,17 @@ const AttachmentAudioPlayer = ({ block }: { block: AudioAttachmentBlock }) => {
     );
   }, [enableAi, transcribing, t, transcribed, block, expanded]);
 
+  const sizeEntry = useMemo(() => {
+    if (error) {
+      return <div className={styles.error}>{error.message}</div>;
+    }
+    return block.props.props.size;
+  }, [error, block.props.props.size]);
+
   return (
     <AudioPlayer
       name={block.props.props.name}
-      size={block.props.props.size}
+      size={sizeEntry}
       loading={loading}
       playbackState={playbackState?.state || 'idle'}
       waveform={stats.waveform}
