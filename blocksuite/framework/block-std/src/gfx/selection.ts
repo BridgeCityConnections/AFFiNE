@@ -380,8 +380,6 @@ export class GfxSelectionManager extends GfxExtension {
   toggle(element: GfxModel | string) {
     element = typeof element === 'string' ? element : element.id;
 
-    console.trace('toggle');
-
     this.set({
       elements: this.has(element)
         ? this.selectedIds.filter(id => id !== element)
