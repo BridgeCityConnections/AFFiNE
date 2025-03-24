@@ -168,6 +168,7 @@ export class AffineSurfaceRefToolbar extends WidgetComponent<
 
     return html`<editor-menu-button
       data-show
+      aria-label="Open"
       style=${styleMap({
         '--content-padding': '8px',
       })}
