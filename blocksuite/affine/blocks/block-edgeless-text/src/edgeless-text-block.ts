@@ -5,9 +5,7 @@ import {
   ListBlockModel,
   ParagraphBlockModel,
 } from '@blocksuite/affine-model';
-import {
-  focusTextModel,
-} from '@blocksuite/affine-rich-text';
+import { focusTextModel } from '@blocksuite/affine-rich-text';
 import { ThemeProvider } from '@blocksuite/affine-shared/services';
 import {
   handleNativeRangeAtPoint,
