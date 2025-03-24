@@ -794,7 +794,7 @@ test('should be able to manage context', async t => {
       {};
     t.snapshot(
       cleanObject(files, ['id', 'error', 'createdAt']),
-      'should list context docs'
+      'should list context files'
     );
 
     // wait for processing
@@ -853,7 +853,7 @@ test('should be able to manage context', async t => {
       {};
     t.snapshot(
       cleanObject(docs, ['error', 'createdAt']),
-      'should list context files'
+      'should list context docs'
     );
 
     // wait for processing
