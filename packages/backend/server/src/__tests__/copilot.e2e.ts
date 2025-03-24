@@ -98,7 +98,7 @@ test.before(async t => {
       // use real JobQueue for testing
       m.overrideProvider(JobQueue).useClass(JobQueue);
       m.overrideProvider(DocReader).useValue({
-        getDocContent() {
+        getFullDocContent() {
           return {
             title: '1',
             summary: '1',
