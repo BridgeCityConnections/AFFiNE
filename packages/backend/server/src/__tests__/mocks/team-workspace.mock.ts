@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Feature } from '../../models';
+import { Feature, FeatureType } from '../../models';
 import { Mocker } from './factory';
 
 interface MockTeamWorkspaceInput {
@@ -15,7 +15,6 @@ export class MockTeamWorkspace extends Mocker<
   override async create(input?: Partial<MockTeamWorkspaceInput>) {
     const id = input?.id ?? faker.string.uuid();
     const quantity = input?.quantity ?? 10;
-
     await this.db.subscription.create({
       data: {
         targetId: id,
@@ -46,6 +45,8 @@ export class MockTeamWorkspace extends Mocker<
         featureId: feature.id,
         reason: 'test',
         activated: true,
+        name: Feature.TeamPlan,
+        type: FeatureType.Quota,
         configs: {
           memberLimit: quantity,
         },
