@@ -195,8 +195,6 @@ export class GfxElementModelView<
 
   onSelected(context: SelectedContext) {
     if (this.model instanceof GfxPrimitiveElementModel) {
-      this.gfx.selection.toggle(this.model);
-
       if (context.multiSelect) {
         this.gfx.selection.toggle(this.model);
       } else {

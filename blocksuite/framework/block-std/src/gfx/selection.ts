@@ -380,63 +380,13 @@ export class GfxSelectionManager extends GfxExtension {
   toggle(element: GfxModel | string) {
     element = typeof element === 'string' ? element : element.id;
 
-    if (this.has(element)) {
-      const selections = this.surfaceSelections.reduce((pre, sel) => {
-        if (sel.elements.includes(element)) {
-          const elements = sel.elements.filter(id => id !== element);
+    console.trace('toggle');
 
-          if (elements.length > 0) {
-            pre.push(
-              this.stdSelection.create(
-                SurfaceSelection,
-                sel.blockId,
-                elements,
-                sel.editing
-              )
-            );
-          }
-        }
-
-        return pre;
-      }, [] as SurfaceSelection[]);
-
-      this.set(selections);
-    } else {
-      const isBlock = this.std.store.hasBlock(element);
-      if (isBlock) {
-        const selection = this.stdSelection.create(
-          SurfaceSelection,
-          element,
-          [element],
-          false
-        );
-
-        this.set([...this.surfaceSelections, selection]);
-      } else {
-        const selection = this.surfaceSelections.find(sel => {
-          if (sel.blockId === this.gfx.surface?.id) {
-            sel.elements.push(element);
-            return true;
-          }
-
-          return false;
-        });
-
-        if (selection) {
-          this.set(this.surfaceSelections);
-        } else {
-          this.set([
-            ...this.surfaceSelections,
-            this.stdSelection.create(
-              SurfaceSelection,
-              this.gfx.surface!.id,
-              [element],
-              false
-            ),
-          ]);
-        }
-      }
-    }
+    this.set({
+      elements: this.has(element)
+        ? this.selectedIds.filter(id => id !== element)
+        : [...this.selectedIds, element],
+    });
   }
 
   setCursor(cursor: CursorSelection | IPoint) {
